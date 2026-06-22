@@ -1,147 +1,67 @@
-# Post-Implementation Notes / Learnings
+# Workshop Quickstart
 
-These notes are from actual execution of this assignment. Apply them to avoid known pitfalls.
+Everything runs in Docker — you don't install Postgres, Node, or Python on your
+machine. Works the same on **macOS, Linux, and Windows (WSL)**.
 
-## 1. Do NOT Use Docker Compose for Local Dev (Port Allocation Bug)
+## 1. Prerequisites
 
-Docker Engine has a known bug where `docker-proxy` processes become orphaned when containers fail to start. This causes persistent "port already allocated" errors even when nothing is listening. The IPv6 dual-stack binding (`0.0.0.0` + `::`) makes it worse.
+- **Docker**, running — [Docker Desktop](https://www.docker.com/products/docker-desktop/) or [Rancher Desktop](https://rancherdesktop.io/).
+- **uv** — [install](https://docs.astral.sh/uv/getting-started/installation/). Only needed for running backend tooling/tests outside Docker; the app itself doesn't require it.
+- **Windows:** run everything inside your **WSL** shell, with Docker Desktop's WSL integration enabled.
 
-**Symptoms:** `Bind for 0.0.0.0:5173 failed: port is already allocated` even after `docker compose down` and `systemctl restart docker`.
-
-**Root cause:** Docker creates `docker-proxy` listeners *before* starting the container. If the container start fails for any reason, the proxies remain orphaned and block subsequent attempts.
-
-**Solution:** Run the app directly on the host instead of Docker:
-```bash
-# Backend
-cd backend && uv run fastapi run --reload app/main.py
-
-# Frontend
-cd frontend && npx vite --host 127.0.0.1
-```
-
-**If you must use Docker**, the nuclear fix:
-```bash
-docker compose down
-sudo pkill -9 -f docker-proxy
-sudo systemctl restart docker
-sleep 5
-docker compose up -d
-```
-
-## 2. IPv6 localhost Issue
-
-On systems where `localhost` resolves to `::1` (IPv6), the browser cannot reach uvicorn (which binds IPv4 only). Symptoms: browser shows connection refused or 404, but `curl http://127.0.0.1:8000/...` works fine.
-
-**Detection:**
-```bash
-getent hosts localhost
-# If it shows "::1 localhost" — apply the fix
-```
-
-**Fix before starting the app:**
-- `frontend/.env`: change `VITE_API_URL=http://127.0.0.1:8000`
-- `.env`: add `http://127.0.0.1:5173` to `BACKEND_CORS_ORIGINS`
-- Start Vite with `--host 127.0.0.1`
-- Access the app at `http://127.0.0.1:5173`, not `http://localhost:5173`
-
-## 3. Fix recover-password.tsx BEFORE Starting Frontend
-
-`frontend/src/routes/recover-password.tsx` may have a pre-existing bug — `z.object({` unclosed. This crashes Vite's TanStack Router code-splitter and blocks ALL routes, not just recover-password. Fix it before any frontend work:
-
-```typescript
-// Line 33-35: Ensure proper closure
-const formSchema = z.object({
-  email: z.string().email(),
-})
-```
-
-## 4. Backend Subagents Must NOT Run `alembic upgrade`
-
-Generate the migration only (`alembic revision --autogenerate`), NOT apply it (`alembic upgrade head`). Migrations should be applied once, manually, after all models are in place. If a subagent runs upgrade and it fails, the migration state gets corrupted.
-
-**If migration state is corrupted** (error like `Can't locate revision identified by 'xxxxx'`):
-```bash
-sudo -u postgres psql -c "DROP DATABASE app;"
-sudo -u postgres psql -c "CREATE DATABASE app;"
-cd backend && uv run alembic upgrade head
-```
-
-## 5. Regenerate Frontend Client BEFORE Frontend Stories
-
-After all backend stories are complete, run `npm run generate-client` in the frontend directory ONCE. This generates TypeScript types and service classes from the OpenAPI spec. Frontend subagents need these types to exist.
-
-## 6. Run `init_db` After Migrations
-
-Outside Docker, the superuser is not created automatically. After running `alembic upgrade head`, also run:
-```bash
-cd backend && uv run python app/initial_data.py
-```
-Without this, login will fail with "Incorrect email or password".
-
-## 7. Kill Stale Processes Before Starting
-
-Repeated starts/stops leave orphan processes. Always clean up first:
-```bash
-lsof -ti:8000 -ti:5173 | xargs kill -9 2>/dev/null
-```
-
-## 8. Clear Vite Cache If Errors Don't Match Code
-
-If Vite shows errors for code you've already fixed, the TanStack Router generator cached the old version at startup:
-```bash
-cd frontend && rm -rf node_modules/.vite
-```
-Then restart Vite.
-
-## 9. Verify Backend Routes Before Frontend
-
-After starting the backend, confirm all routes are registered:
-```bash
-curl -s http://127.0.0.1:8000/api/v1/openapi.json | python3 -c "import sys,json; print(len(json.load(sys.stdin)['paths']), 'routes')"
-```
-Expected: 20 routes (including projects and time-entries). If 0, the backend loaded an old version — kill and restart.
-
-## 10. PostgreSQL Setup (Non-Docker)
-
-The app expects a local PostgreSQL with these settings (from `.env`):
-```
-POSTGRES_SERVER=localhost
-POSTGRES_PORT=5432
-POSTGRES_DB=app
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=changethis
-```
-
-Setup:
-```bash
-sudo service postgresql start
-sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'changethis';"
-sudo -u postgres psql -c "CREATE DATABASE app;"
-```
-
-## Quick Start (Complete Sequence)
+## 2. Start it
 
 ```bash
-cd /home/pgladko/projects/AIDLSWorkshop/src/full-stack-fastapi-template
-
-# 1. Kill stale processes
-lsof -ti:8000 -ti:5173 | xargs kill -9 2>/dev/null
-
-# 2. Start postgres
-sudo service postgresql start
-
-# 3. Run migrations + seed
-cd backend && uv run alembic upgrade head && uv run python app/initial_data.py
-
-# 4. Start backend
-uv run fastapi run --reload app/main.py &
-
-# 5. Start frontend
-cd ../frontend && npx vite --host 127.0.0.1 &
-
-# 6. Access
-# Frontend: http://127.0.0.1:5173
-# Backend API: http://127.0.0.1:8000
-# API Docs: http://127.0.0.1:8000/docs
-# Login: admin@example.com / changethis
+cd src/full-stack-fastapi-template
+./scripts/dev.sh
 ```
+
+First run builds the images — **a few minutes, once**. After that it starts in
+seconds. The stack runs **in the background**, so the command returns to your
+prompt — **you don't need to keep a terminal open**. When it's up:
+
+| What | URL | |
+|------|-----|--|
+| Frontend | http://localhost:15173 | login `admin@example.com` / `changethis` |
+| API docs | http://localhost:18000/docs | Swagger UI |
+
+> Uncommon ports (15173 / 18000) are used on purpose so they don't collide with
+> whatever else you run. Need to change them? `BACKEND_PORT=18500 FRONTEND_PORT=15500 ./scripts/dev.sh`
+
+**Both the backend and the frontend reload live as you edit** — the source is
+bind-mounted into the containers, so saving a file in `backend/` or `frontend/`
+applies immediately (backend restarts via `--reload`; frontend hot-reloads in the
+browser via Vite HMR). No command, no terminal to keep open.
+
+## 3. Stop / reset
+
+```bash
+./scripts/dev.sh down     # stop & remove containers (keeps DB data)
+./scripts/dev.sh reset    # also wipe the database (fresh start)
+./scripts/dev.sh logs     # follow all logs
+```
+
+## What the script does for you
+
+- Runs only what the demo needs — Postgres (**internal to Docker, no host port**), backend, and frontend — via Docker Compose, in the background.
+- Bind-mounts `./backend` and `./frontend` into the containers and runs each dev server with file-polling, so your edits apply live.
+- Runs DB **migrations** and creates the **superuser** automatically (the `prestart` service) — you never run `alembic` or `init_db` by hand.
+- Skips the Traefik proxy, Playwright, Adminer, and Mailcatcher to keep the footprint small.
+
+## Building features during the workshop
+
+- **Editing UI or API code?** Just save — the running stack reloads both (backend via `--reload`, frontend via Vite HMR). No command needed.
+- **Changed the database models?** Generate a migration, then it's applied automatically: `docker compose exec backend alembic revision --autogenerate -m "..."` — `prestart` runs `alembic upgrade head` on the next start, or apply now with `docker compose exec backend alembic upgrade head`.
+- **Changed the backend API and need the typed frontend client regenerated?** With the stack running: `docker compose exec frontend bun run generate-client` (or, with Node locally, `cd frontend && npm run generate-client`).
+- **Added a Python or JS dependency?** That needs a rebuild — re-run `./scripts/dev.sh` (it always builds; `package.json`/`pyproject.toml` changes trigger an image rebuild).
+
+## Troubleshooting
+
+| Symptom | Fix |
+|---------|-----|
+| `port 18000 / 15173 already in use` | Pick others: `BACKEND_PORT=18500 FRONTEND_PORT=15500 ./scripts/dev.sh`. |
+| Backend never becomes healthy | `./scripts/dev.sh logs` — the `prestart` service must finish migrations before `backend` starts. |
+| Edited a file but nothing reloaded | Make sure the stack is running (`./scripts/dev.sh logs`). Reloads use polling, so they apply within ~1s of saving. |
+| Corrupted migration state / want a clean DB | `./scripts/dev.sh reset` |
+| "Docker is installed but not running" | Start Docker Desktop / Rancher Desktop, then re-run. |
+| Need to look inside the DB | `docker compose exec db psql -U postgres -d app` (Postgres has no host port; this opens a shell inside the container). |
