@@ -1,0 +1,53 @@
+# Workshop dev overrides, layered on top of compose.yml + compose.override.yml.
+#
+# What this gives you:
+#  1. Postgres internal to the Docker network (no host port) — backend reaches it
+#     at db:5432. Avoids clashing with any local Postgres.
+#  2. Backend + frontend on uncommon host ports (very likely free).
+#  3. LIVE editing for BOTH backend and frontend with NO extra command and NO
+#     long-running terminal: the source is bind-mounted into the containers and
+#     each dev server reloads on save —
+#       - backend:  `fastapi run --reload` (uvicorn) restarts on .py changes
+#       - frontend: Vite dev server hot-reloads (HMR) in the browser
+#     File polling is forced on because filesystem events don't cross the Docker
+#     VM boundary reliably on macOS/Windows.
+#
+# Defaults: backend 18000, frontend 15173. Override per-run, e.g.:
+#     BACKEND_PORT=18500 FRONTEND_PORT=15500 ./scripts/dev.sh
+services:
+  db:
+    ports: !reset []
+
+  backend:
+    ports: !override
+      - "${BACKEND_PORT:-18000}:8000"
+    environment:
+      # Allow the browser origin the frontend is actually served from.
+      BACKEND_CORS_ORIGINS: "http://localhost:${FRONTEND_PORT:-15173}"
+      # uvicorn's --reload watcher must poll across the Docker VM boundary.
+      WATCHFILES_FORCE_POLLING: "true"
+    volumes:
+      # Live-mount the app source (the virtualenv lives at /app/.venv, untouched).
+      - ./backend/app:/app/backend/app
+
+  frontend:
+    # Build only the deps stage (node_modules) — no production compile — then run
+    # the Vite dev server against the bind-mounted source below.
+    build:
+      target: deps
+    command:
+      - sh
+      - -c
+      - "bun run dev --host 0.0.0.0 --port ${FRONTEND_PORT:-15173}"
+    ports: !override
+      - "${FRONTEND_PORT:-15173}:${FRONTEND_PORT:-15173}"
+    environment:
+      # Vite reads VITE_* from the environment at dev-server start.
+      - VITE_API_URL=http://localhost:${BACKEND_PORT:-18000}
+      # Enable Vite's polling watcher (see vite.config.ts).
+      - VITE_USE_POLLING=true
+    volumes:
+      # Live-mount the frontend source, but keep the image's installed
+      # node_modules (anonymous volume shadows the bind mount at that path).
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
