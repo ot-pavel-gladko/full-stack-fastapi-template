@@ -57,6 +57,45 @@ export const Body_login_login_access_tokenSchema = {
     title: 'Body_login-login_access_token'
 } as const;
 
+export const DashboardSummarySchema = {
+    properties: {
+        total_hours: {
+            type: 'number',
+            title: 'Total Hours'
+        },
+        billable_hours: {
+            type: 'number',
+            title: 'Billable Hours'
+        },
+        non_billable_hours: {
+            type: 'number',
+            title: 'Non Billable Hours'
+        },
+        billable_pct: {
+            type: 'number',
+            title: 'Billable Pct'
+        },
+        active_projects: {
+            type: 'integer',
+            title: 'Active Projects'
+        },
+        total_projects: {
+            type: 'integer',
+            title: 'Total Projects'
+        },
+        by_project: {
+            items: {
+                '$ref': '#/components/schemas/ProjectSummary'
+            },
+            type: 'array',
+            title: 'By Project'
+        }
+    },
+    type: 'object',
+    required: ['total_hours', 'billable_hours', 'non_billable_hours', 'billable_pct', 'active_projects', 'total_projects', 'by_project'],
+    title: 'DashboardSummary'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -249,6 +288,320 @@ export const PrivateUserCreateSchema = {
     type: 'object',
     required: ['email', 'password', 'full_name'],
     title: 'PrivateUserCreate'
+} as const;
+
+export const ProjectCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        status: {
+            type: 'string',
+            maxLength: 50,
+            title: 'Status',
+            default: 'active'
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'ProjectCreate'
+} as const;
+
+export const ProjectPublicSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        status: {
+            type: 'string',
+            maxLength: 50,
+            title: 'Status',
+            default: 'active'
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        owner_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Owner Id'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['name', 'id', 'owner_id'],
+    title: 'ProjectPublic'
+} as const;
+
+export const ProjectSummarySchema = {
+    properties: {
+        project_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Project Id'
+        },
+        project_name: {
+            type: 'string',
+            title: 'Project Name'
+        },
+        status: {
+            type: 'string',
+            title: 'Status'
+        },
+        total_hours: {
+            type: 'number',
+            title: 'Total Hours'
+        },
+        billable_hours: {
+            type: 'number',
+            title: 'Billable Hours'
+        },
+        non_billable_hours: {
+            type: 'number',
+            title: 'Non Billable Hours'
+        },
+        billable_pct: {
+            type: 'number',
+            title: 'Billable Pct'
+        }
+    },
+    type: 'object',
+    required: ['project_id', 'project_name', 'status', 'total_hours', 'billable_hours', 'non_billable_hours', 'billable_pct'],
+    title: 'ProjectSummary'
+} as const;
+
+export const ProjectUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        status: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 50
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Status'
+        }
+    },
+    type: 'object',
+    title: 'ProjectUpdate'
+} as const;
+
+export const ProjectsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ProjectPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ProjectsPublic'
+} as const;
+
+export const TimeEntriesPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/TimeEntryPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'TimeEntriesPublic'
+} as const;
+
+export const TimeEntryCreateSchema = {
+    properties: {
+        project_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Project Id'
+        },
+        entry_date: {
+            type: 'string',
+            format: 'date',
+            title: 'Entry Date'
+        },
+        hours: {
+            anyOf: [
+                {
+                    type: 'number'
+                },
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$'
+                }
+            ],
+            title: 'Hours'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_billable: {
+            type: 'boolean',
+            title: 'Is Billable',
+            default: true
+        }
+    },
+    type: 'object',
+    required: ['project_id', 'hours'],
+    title: 'TimeEntryCreate'
+} as const;
+
+export const TimeEntryPublicSchema = {
+    properties: {
+        project_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Project Id'
+        },
+        entry_date: {
+            type: 'string',
+            format: 'date',
+            title: 'Entry Date'
+        },
+        hours: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Hours'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 1000
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_billable: {
+            type: 'boolean',
+            title: 'Is Billable',
+            default: true
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        owner_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Owner Id'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['project_id', 'hours', 'id', 'owner_id'],
+    title: 'TimeEntryPublic'
 } as const;
 
 export const TokenSchema = {

@@ -9,6 +9,16 @@ export type Body_login_login_access_token = {
     client_secret?: (string | null);
 };
 
+export type DashboardSummary = {
+    total_hours: number;
+    billable_hours: number;
+    non_billable_hours: number;
+    billable_pct: number;
+    active_projects: number;
+    total_projects: number;
+    by_project: Array<ProjectSummary>;
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -50,6 +60,66 @@ export type PrivateUserCreate = {
     password: string;
     full_name: string;
     is_verified?: boolean;
+};
+
+export type ProjectCreate = {
+    name: string;
+    description?: (string | null);
+    status?: string;
+};
+
+export type ProjectPublic = {
+    name: string;
+    description?: (string | null);
+    status?: string;
+    id: string;
+    owner_id: string;
+    created_at?: (string | null);
+};
+
+export type ProjectsPublic = {
+    data: Array<ProjectPublic>;
+    count: number;
+};
+
+export type ProjectSummary = {
+    project_id: string;
+    project_name: string;
+    status: string;
+    total_hours: number;
+    billable_hours: number;
+    non_billable_hours: number;
+    billable_pct: number;
+};
+
+export type ProjectUpdate = {
+    name?: (string | null);
+    description?: (string | null);
+    status?: (string | null);
+};
+
+export type TimeEntriesPublic = {
+    data: Array<TimeEntryPublic>;
+    count: number;
+};
+
+export type TimeEntryCreate = {
+    project_id: string;
+    entry_date?: string;
+    hours: (number | string);
+    description?: (string | null);
+    is_billable?: boolean;
+};
+
+export type TimeEntryPublic = {
+    project_id: string;
+    entry_date?: string;
+    hours: string;
+    description?: (string | null);
+    is_billable?: boolean;
+    id: string;
+    owner_id: string;
+    created_at?: (string | null);
 };
 
 export type Token = {
@@ -112,6 +182,8 @@ export type ValidationError = {
         [key: string]: unknown;
     };
 };
+
+export type DashboardGetDashboardSummaryResponse = (DashboardSummary);
 
 export type ItemsReadItemsData = {
     limit?: number;
@@ -176,6 +248,57 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type ProjectsReadProjectsData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type ProjectsReadProjectsResponse = (ProjectsPublic);
+
+export type ProjectsCreateProjectEndpointData = {
+    requestBody: ProjectCreate;
+};
+
+export type ProjectsCreateProjectEndpointResponse = (ProjectPublic);
+
+export type ProjectsReadProjectData = {
+    id: string;
+};
+
+export type ProjectsReadProjectResponse = (ProjectPublic);
+
+export type ProjectsUpdateProjectEndpointData = {
+    id: string;
+    requestBody: ProjectUpdate;
+};
+
+export type ProjectsUpdateProjectEndpointResponse = (ProjectPublic);
+
+export type TimeEntriesReadTimeEntriesData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type TimeEntriesReadTimeEntriesResponse = (TimeEntriesPublic);
+
+export type TimeEntriesCreateTimeEntryEndpointData = {
+    requestBody: TimeEntryCreate;
+};
+
+export type TimeEntriesCreateTimeEntryEndpointResponse = (TimeEntryPublic);
+
+export type TimeEntriesReadTimeEntryData = {
+    id: string;
+};
+
+export type TimeEntriesReadTimeEntryResponse = (TimeEntryPublic);
+
+export type TimeEntriesDeleteTimeEntryData = {
+    id: string;
+};
+
+export type TimeEntriesDeleteTimeEntryResponse = (Message);
 
 export type UsersReadUsersData = {
     limit?: number;

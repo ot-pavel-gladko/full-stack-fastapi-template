@@ -1,0 +1,43 @@
+{
+  "run_id": "pavel.gladko-20260626-1336",
+  "project_key": "TRRND",
+  "epic_key": "TRRND-3",
+  "feature": "Time tracking",
+  "feature_slug": "time-tracking",
+  "branch": "feature/TRRND-3-time-tracking",
+  "current_step": 5,
+  "stories": [
+    "TRRND-4",
+    "TRRND-5",
+    "TRRND-6",
+    "TRRND-7",
+    "TRRND-8",
+    "TRRND-9",
+    "TRRND-10",
+    "TRRND-11"
+  ],
+  "artifacts": {
+    "wireframe": "wireframes/TRRND-3.html",
+    "pr": "https://github.com/ot-pavel-gladko/full-stack-fastapi-template/pull/4"
+  },
+  "reviews": [
+    {
+      "step": 2,
+      "round": 1,
+      "role": "product_owner",
+      "decision": "rejected",
+      "comments": [
+        "Add Cards/Grid view toggle on Projects",
+        "Add Projects empty-state",
+        "Make wireframe annotation notes colourful"
+      ]
+    },
+    {
+      "step": 2,
+      "round": 2,
+      "role": "product_owner",
+      "decision": "approved",
+      "comments": []
+    }
+  ]
+}
