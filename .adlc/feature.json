@@ -5,8 +5,11 @@
   "feature": "Time tracking",
   "feature_slug": "time-tracking",
   "branch": "feature/TRRND-3-time-tracking",
-  "current_step": 0,
+  "current_step": 2,
   "stories": [],
-  "artifacts": { "wireframe": null, "pr": null },
-  "reviews": []
+  "artifacts": { "wireframe": "wireframes/TRRND-3.html", "pr": null },
+  "reviews": [
+    { "step": 2, "round": 1, "role": "product_owner", "decision": "rejected", "comments": ["Add Cards/Grid view toggle on Projects", "Add Projects empty-state", "Make wireframe annotation notes colourful"] },
+    { "step": 2, "round": 2, "role": "product_owner", "decision": "approved", "comments": [] }
+  ]
 }

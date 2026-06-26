@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Tracking — TRRND-3 Wireframe</title>
+  <style>
+    /*
+     * Design tokens sourced from frontend/src/index.css
+     * Primary: oklch(0.5982 0.10687 182.4689) — a teal/cyan
+     * Radius:  0.625rem (--radius)
+     * Font stack mirrors the app's system-ui baseline
+     */
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* --- Color tokens (from index.css :root) --- */
+      --background:          #ffffff;
+      --foreground:          #0f0f0f;
+      --card:                #ffffff;
+      --card-foreground:     #0f0f0f;
+      --primary:             #3b9e9a;   /* closest sRGB to oklch(0.5982 0.10687 182.4689) */
+      --primary-foreground:  #f9f9f9;
+      --secondary:           #f5f5f5;
+      --secondary-foreground:#1a1a1a;
+      --muted:               #f5f5f5;
+      --muted-foreground:    #737373;
+      --accent:              #f5f5f5;
+      --accent-foreground:   #1a1a1a;
+      --destructive:         #dc2626;
+      --border:              #e5e5e5;
+      --input:               #e5e5e5;
+      --ring:                #a3a3a3;
+      --sidebar:             #fafafa;
+      --sidebar-foreground:  #0f0f0f;
+      --sidebar-primary:     #3b9e9a;
+      --sidebar-border:      #e5e5e5;
+
+      /* --- Radius tokens (from index.css) --- */
+      --radius:    0.625rem;
+      --radius-sm: calc(var(--radius) - 4px);
+      --radius-md: calc(var(--radius) - 2px);
+      --radius-lg: var(--radius);
+      --radius-xl: calc(var(--radius) + 4px);
+
+      /* Sidebar width matches sidebar.tsx SIDEBAR_WIDTH = 16rem */
+      --sidebar-width: 16rem;
+      --header-height: 4rem;  /* h-16 */
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      background: var(--background);
+      color: var(--foreground);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* =====================================================
+       APP SHELL — mirrors _layout.tsx + AppSidebar.tsx
+       SidebarProvider > AppSidebar + SidebarInset
+    ===================================================== */
+
+    .sidebar {
+      width: var(--sidebar-width);
+      min-height: 100vh;
+      background: var(--sidebar);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 20;
+    }
+
+    .sidebar-header {
+      padding: 1.5rem 1rem;
+      border-bottom: 1px solid var(--sidebar-border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--sidebar-primary);
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 1.75rem;
+      height: 1.75rem;
+      background: var(--sidebar-primary);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 900;
+      font-size: 0.75rem;
+    }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0.75rem 0;
+    }
+
+    .sidebar-nav-label {
+      padding: 0.375rem 1rem;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted-foreground);
+    }
+
+    .sidebar-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.5rem 1rem;
+      border-radius: 0;
+      cursor: pointer;
+      color: var(--sidebar-foreground);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 500;
+      transition: background 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+
+    .sidebar-nav-item:hover {
+      background: var(--accent);
+    }
+
+    .sidebar-nav-item.active {
+      background: var(--accent);
+      color: var(--sidebar-primary);
+    }
+
+    .sidebar-nav-item.active .nav-icon {
+      color: var(--sidebar-primary);
+    }
+
+    .nav-icon {
+      width: 1rem;
+      height: 1rem;
+      flex-shrink: 0;
+      color: var(--muted-foreground);
+    }
+
+    .sidebar-footer {
+      border-top: 1px solid var(--sidebar-border);
+      padding: 0.75rem 1rem;
+    }
+
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.375rem 0;
+    }
+
+    .avatar {
+      width: 2rem;
+      height: 2rem;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--primary-foreground);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-size: 0.875rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .user-email { font-size: 0.75rem; color: var(--muted-foreground); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* =====================================================
+       MAIN CONTENT — SidebarInset
+    ===================================================== */
+
+    .sidebar-inset {
+      margin-left: var(--sidebar-width);
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* sticky header — border-b px-4 h-16 */
+    .top-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      height: var(--header-height);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      padding: 0 1rem;
+      background: var(--background);
+    }
+
+    .sidebar-trigger {
+      width: 2.25rem;
+      height: 2.25rem;
+      border: none;
+      background: none;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--muted-foreground);
+    }
+
+    .sidebar-trigger:hover { background: var(--accent); }
+
+    /* main p-6 md:p-8, mx-auto max-w-7xl */
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+    }
+
+    .inner {
+      max-width: 80rem;
+      margin: 0 auto;
+    }
+
+    /* =====================================================
+       PAGE REGIONS — screens toggled by JS
+    ===================================================== */
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* Page header pattern from items.tsx:
+       flex items-center justify-between + h1 text-2xl font-bold tracking-tight */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      gap: 1rem;
+    }
+
+    .page-header-text h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.25;
+    }
+
+    .page-header-text p {
+      font-size: 0.875rem;
+      color: var(--muted-foreground);
+      margin-top: 0.125rem;
+    }
+
+    /* =====================================================
+       BUTTON — mirrors button.tsx variants
+    ===================================================== */
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+      border-radius: var(--radius-md);
+      font-size: 0.875rem;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      outline: none;
+      text-decoration: none;
+    }
+
+    /* size default: h-9 px-4 py-2 */
+    .btn-default { height: 2.25rem; padding: 0.5rem 1rem; }
+    .btn-sm      { height: 2rem;    padding: 0.375rem 0.75rem; font-size: 0.8125rem; border-radius: var(--radius-md); }
+    .btn-lg      { height: 2.5rem;  padding: 0.5rem 1.5rem; }
+
+    /* variant default */
+    .btn-primary { background: var(--primary); color: var(--primary-foreground); }
+    .btn-primary:hover { background: color-mix(in srgb, var(--primary) 90%, transparent); }
+
+    /* variant outline */
+    .btn-outline { background: var(--background); color: var(--foreground); border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+    .btn-outline:hover { background: var(--accent); }
+
+    /* variant ghost */
+    .btn-ghost { background: transparent; color: var(--foreground); }
+    .btn-ghost:hover { background: var(--accent); }
+
+    /* variant destructive */
+    .btn-destructive { background: var(--destructive); color: #fff; }
+    .btn-destructive:hover { opacity: 0.9; }
+
+    /* =====================================================
+       CARD — mirrors card.tsx
+       bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm
+    ===================================================== */
+
+    .card {
+      background: var(--card);
+      color: var(--card-foreground);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      padding: 1.5rem 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    }
+
+    .card-header { padding: 0 1.5rem; display: flex; flex-direction: column; gap: 0.25rem; }
+    .card-header.row { flex-direction: row; align-items: flex-start; justify-content: space-between; }
+    .card-title { font-size: 1rem; font-weight: 600; line-height: 1; }
+    .card-description { font-size: 0.875rem; color: var(--muted-foreground); }
+    .card-content { padding: 0 1.5rem; }
+    .card-footer { padding: 0 1.5rem; display: flex; align-items: center; }
+
+    /* =====================================================
+       TABLE — mirrors table.tsx
+    ===================================================== */
+
+    .table-container {
+      position: relative;
+      width: 100%;
+      overflow-x: auto;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      caption-side: bottom;
+      font-size: 0.875rem;
+      border-collapse: collapse;
+    }
+
+    /* TableHeader: bg-muted/50 [&_tr]:border-b */
+    thead {
+      background: rgba(245,245,245,0.5);
+    }
+
+    thead tr { border-bottom: 1px solid var(--border); }
+
+    /* TableHead: h-11 px-4 text-xs font-semibold uppercase tracking-wider */
+    th {
+      height: 2.75rem;
+      padding: 0 1rem;
+      text-align: left;
+      vertical-align: middle;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+      color: var(--muted-foreground);
+    }
+
+    /* TableRow: hover:bg-muted/50 border-b */
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(245,245,245,0.5); }
+
+    /* TableCell: px-4 py-3 align-middle */
+    td {
+      padding: 0.75rem 1rem;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    /* =====================================================
+       INPUT — mirrors input.tsx
+       h-9 w-full rounded-md border border-input bg-transparent px-3 py-1
+    ===================================================== */
+
+    .input {
+      height: 2.25rem;
+      width: 100%;
+      min-width: 0;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--input);
+      background: transparent;
+      padding: 0.25rem 0.75rem;
+      font-size: 0.875rem;
+      font-family: inherit;
+      color: var(--foreground);
+      transition: box-shadow 0.15s, border-color 0.15s;
+      outline: none;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+
+    .input::placeholder { color: var(--muted-foreground); }
+
+    .input:focus {
+      border-color: var(--ring);
+      box-shadow: 0 0 0 3px rgba(163,163,163,0.3);
+    }
+
+    textarea.input {
+      height: auto;
+      min-height: 5rem;
+      padding: 0.5rem 0.75rem;
+      resize: vertical;
+    }
+
+    /* =====================================================
+       FORM / LABEL
+    ===================================================== */
+
+    .form-group { display: flex; flex-direction: column; gap: 0.375rem; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      line-height: 1;
+    }
+
+    .form-message { font-size: 0.75rem; color: var(--muted-foreground); }
+
+    /* =====================================================
+       SWITCH / TOGGLE — billable
+    ===================================================== */
+
+    .switch-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      background: var(--muted);
+    }
+
+    .switch-label { font-size: 0.875rem; font-weight: 500; }
+    .switch-desc  { font-size: 0.75rem;  color: var(--muted-foreground); margin-top: 0.125rem; }
+
+    .switch {
+      position: relative;
+      display: inline-flex;
+      width: 2.75rem;
+      height: 1.5rem;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    .switch input { position: absolute; opacity: 0; width: 0; height: 0; }
+
+    .switch-track {
+      width: 100%;
+      height: 100%;
+      border-radius: 9999px;
+      background: var(--input);
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      padding: 0 0.2rem;
+    }
+
+    .switch input:checked + .switch-track {
+      background: var(--primary);
+    }
+
+    .switch-thumb {
+      width: 1.125rem;
+      height: 1.125rem;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+
+    .switch input:checked + .switch-track .switch-thumb {
+      transform: translateX(1.25rem);
+    }
+
+    /* =====================================================
+       BADGE
+    ===================================================== */
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 9999px;
+      padding: 0.125rem 0.5rem;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      line-height: 1.5;
+      white-space: nowrap;
+    }
+
+    .badge-primary { background: color-mix(in srgb, var(--primary) 15%, transparent); color: var(--primary); }
+    .badge-muted   { background: var(--muted); color: var(--muted-foreground); }
+    .badge-success { background: #dcfce7; color: #166534; }
+
+    /* =====================================================
+       DIALOG / MODAL — mirrors dialog.tsx
+    ===================================================== */
+
+    .dialog-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .dialog-overlay.open { display: flex; }
+
+    /* bg-background rounded-lg border p-6 shadow-lg max-w sm:max-w-lg */
+    .dialog-content {
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      width: calc(100% - 2rem);
+      max-width: 32rem;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .dialog-close {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      width: 1.5rem;
+      height: 1.5rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      opacity: 0.7;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      line-height: 1;
+    }
+    .dialog-close:hover { opacity: 1; background: var(--accent); }
+
+    /* text-lg leading-none font-semibold */
+    .dialog-title { font-size: 1.125rem; font-weight: 600; line-height: 1; }
+    .dialog-description { font-size: 0.875rem; color: var(--muted-foreground); }
+
+    .dialog-header { display: flex; flex-direction: column; gap: 0.5rem; }
+
+    /* sm:flex-row sm:justify-end gap-2 */
+    .dialog-footer { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
+
+    /* =====================================================
+       EMPTY STATE — pattern from items.tsx
+       flex flex-col items-center justify-center text-center py-12
+       rounded-full bg-muted p-4 mb-4
+    ===================================================== */
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem 1rem;
+    }
+
+    .empty-icon {
+      width: 4rem;
+      height: 4rem;
+      border-radius: 50%;
+      background: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .empty-icon svg { color: var(--muted-foreground); }
+    .empty-state h3 { font-size: 1.125rem; font-weight: 600; }
+    .empty-state p  { font-size: 0.875rem; color: var(--muted-foreground); margin-top: 0.25rem; }
+    .empty-state .btn { margin-top: 1rem; }
+
+    /* =====================================================
+       STAT CARDS — dashboard summary row
+    ===================================================== */
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-foreground);
+      margin-bottom: 0.375rem;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1;
+      color: var(--foreground);
+    }
+
+    .stat-sub {
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      margin-top: 0.25rem;
+    }
+
+    /* =====================================================
+       PROJECT VIEW TOGGLE — segmented control
+    ===================================================== */
+
+    .view-toggle {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: var(--background);
+    }
+
+    .view-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0.375rem 0.75rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      border: none;
+      background: transparent;
+      color: var(--muted-foreground);
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      height: 2.25rem;
+    }
+
+    .view-toggle-btn + .view-toggle-btn {
+      border-left: 1px solid var(--border);
+    }
+
+    .view-toggle-btn.active {
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    .view-toggle-btn:not(.active):hover {
+      background: var(--accent);
+      color: var(--foreground);
+    }
+
+    /* =====================================================
+       PROJECT CARD GRID
+    ===================================================== */
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+      gap: 1rem;
+    }
+
+    .project-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 1.25rem 1.5rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      transition: box-shadow 0.15s;
+    }
+
+    .project-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+
+    .project-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.5rem; }
+    .project-name { font-size: 1rem; font-weight: 600; }
+    .project-desc { font-size: 0.875rem; color: var(--muted-foreground); line-height: 1.4; }
+    .project-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+
+    .project-actions { display: flex; gap: 0.375rem; }
+
+    /* color swatch dot */
+    .color-dot {
+      width: 0.625rem;
+      height: 0.625rem;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 0.25rem;
+    }
+
+    /* =====================================================
+       SEPARATOR
+    ===================================================== */
+
+    .separator { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+    /* =====================================================
+       PROGRESS BAR — billable ratio
+    ===================================================== */
+
+    .progress-bar {
+      height: 0.5rem;
+      border-radius: 9999px;
+      background: var(--muted);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 9999px;
+      background: var(--primary);
+      transition: width 0.3s;
+    }
+
+    /* =====================================================
+       UTILITY
+    ===================================================== */
+
+    .flex       { display: flex; }
+    .flex-col   { flex-direction: column; }
+    .items-center { align-items: center; }
+    .gap-4      { gap: 1rem; }
+    .gap-6      { gap: 1.5rem; }
+    .gap-2      { gap: 0.5rem; }
+    .mt-4       { margin-top: 1rem; }
+    .mt-6       { margin-top: 1.5rem; }
+    .mb-4       { margin-bottom: 1rem; }
+    .w-full     { width: 100%; }
+    .text-sm    { font-size: 0.875rem; }
+    .text-muted { color: var(--muted-foreground); }
+    .font-semibold { font-weight: 600; }
+    .font-medium   { font-weight: 500; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+    /* footer from Footer component — minimal */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 1rem 2rem;
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      text-align: center;
+    }
+
+    /* =====================================================
+       WIREFRAME ANNOTATION CALLOUT
+       Coloured reviewer note — visually distinct from product chrome
+    ===================================================== */
+
+    .wf-note {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+      padding: 0.875rem 1rem;
+      background: #fffbeb;          /* amber-50 */
+      border: 1px solid #fcd34d;   /* amber-300 */
+      border-left: 4px solid #f59e0b; /* amber-500 */
+      border-radius: var(--radius-md);
+      font-size: 0.8125rem;
+      color: #78350f;               /* amber-900 */
+      line-height: 1.5;
+    }
+
+    .wf-note-icon {
+      flex-shrink: 0;
+      width: 1.25rem;
+      height: 1.25rem;
+      margin-top: 0.05rem;
+      color: #f59e0b;
+    }
+
+    .wf-note-label {
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.6875rem;
+      color: #b45309;               /* amber-700 */
+      display: block;
+      margin-bottom: 0.2rem;
+    }
+
+    /* =====================================================
+       SVG ICONS (inline — no CDN)
+    ===================================================== */
+
+    .icon { display: inline-block; vertical-align: middle; }
+
+  </style>
+</head>
+<body>
+
+<!-- =====================================================
+     SIDEBAR — AppSidebar.tsx shell
+===================================================== -->
+<nav class="sidebar" aria-label="Application sidebar">
+  <div class="sidebar-header">
+    <a href="#" class="logo">
+      <div class="logo-icon">F</div>
+      FastAPI
+    </a>
+  </div>
+
+  <div class="sidebar-content">
+    <div class="sidebar-nav-label">Navigation</div>
+
+    <button class="sidebar-nav-item" onclick="showScreen('dashboard')">
+      <!-- Home icon -->
+      <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      Dashboard
+    </button>
+
+    <button class="sidebar-nav-item" onclick="showScreen('projects')">
+      <!-- Briefcase icon -->
+      <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="20" height="14" x="2" y="7" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      </svg>
+      Items
+    </button>
+
+    <div class="sidebar-nav-label" style="margin-top:0.5rem;">Time Tracking</div>
+
+    <button class="sidebar-nav-item" id="nav-projects" onclick="showScreen('projects')">
+      <!-- FolderOpen icon -->
+      <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>
+      </svg>
+      Projects
+    </button>
+
+    <button class="sidebar-nav-item" id="nav-log" onclick="showScreen('log')">
+      <!-- Clock icon -->
+      <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+      Log Time
+    </button>
+
+    <button class="sidebar-nav-item" id="nav-dashboard" onclick="showScreen('dashboard')">
+      <!-- BarChart icon -->
+      <svg class="nav-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>
+      </svg>
+      Hours Dashboard
+    </button>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="user-row">
+      <div class="avatar">JD</div>
+      <div class="user-info">
+        <div class="user-name">Jane Doe</div>
+        <div class="user-email">jane@example.com</div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- =====================================================
+     SIDEBAR INSET — main app area
+===================================================== -->
+<div class="sidebar-inset">
+  <header class="top-bar">
+    <button class="sidebar-trigger" aria-label="Toggle sidebar">
+      <!-- PanelLeft icon -->
+      <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/>
+      </svg>
+    </button>
+    <!-- breadcrumb hint -->
+    <span style="font-size:0.875rem;color:var(--muted-foreground);margin-left:0.25rem;" id="breadcrumb">Projects</span>
+  </header>
+
+  <main class="main-content">
+    <div class="inner">
+
+      <!-- ================================================
+           SCREEN 1 — PROJECTS
+      ================================================ -->
+      <section id="screen-projects" class="screen active">
+        <div class="page-header">
+          <div class="page-header-text">
+            <h1>Projects</h1>
+            <p>Create and manage your time-tracking projects</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <!-- View toggle: Cards | Grid -->
+            <div class="view-toggle" role="group" aria-label="View layout">
+              <button class="view-toggle-btn active" id="view-btn-cards" onclick="setProjectsView('cards')" title="Card view">
+                <!-- LayoutGrid icon -->
+                <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg>
+                Cards
+              </button>
+              <button class="view-toggle-btn" id="view-btn-grid" onclick="setProjectsView('grid')" title="Grid / table view">
+                <!-- List icon -->
+                <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/></svg>
+                Grid
+              </button>
+            </div>
+            <button class="btn btn-primary btn-default" onclick="openDialog('dialog-create-project')">
+              <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M5 12h14"/><path d="M12 5v14"/>
+              </svg>
+              New Project
+            </button>
+          </div>
+        </div>
+
+        <!-- ---- CARDS VIEW (default) ---- -->
+        <div id="projects-cards-view">
+          <!-- With projects: card grid -->
+          <div id="projects-list" class="projects-grid">
+
+            <div class="project-card">
+              <div class="project-card-header">
+                <div style="display:flex;align-items:flex-start;gap:0.625rem;">
+                  <div class="color-dot" style="background:#3b9e9a;margin-top:0.3rem;"></div>
+                  <div>
+                    <div class="project-name">Website Redesign</div>
+                    <div class="project-desc">Full redesign of the marketing site including new component library.</div>
+                  </div>
+                </div>
+                <div class="project-actions">
+                  <button class="btn btn-ghost btn-sm" title="Edit project" style="padding:0.25rem 0.5rem;">
+                    <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="project-meta">
+                <span class="badge badge-primary">Active</span>
+                <span class="text-sm text-muted">42.5 hrs logged</span>
+              </div>
+              <div>
+                <button class="btn btn-outline btn-sm" onclick="prefillProject('Website Redesign'); showScreen('log')">
+                  <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Log Time
+                </button>
+              </div>
+            </div>
+
+            <div class="project-card">
+              <div class="project-card-header">
+                <div style="display:flex;align-items:flex-start;gap:0.625rem;">
+                  <div class="color-dot" style="background:#a78bfa;margin-top:0.3rem;"></div>
+                  <div>
+                    <div class="project-name">API Integration</div>
+                    <div class="project-desc">Connect third-party payment provider and build webhook handlers.</div>
+                  </div>
+                </div>
+                <div class="project-actions">
+                  <button class="btn btn-ghost btn-sm" style="padding:0.25rem 0.5rem;">
+                    <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="project-meta">
+                <span class="badge badge-primary">Active</span>
+                <span class="text-sm text-muted">18.0 hrs logged</span>
+              </div>
+              <div>
+                <button class="btn btn-outline btn-sm" onclick="prefillProject('API Integration'); showScreen('log')">
+                  <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Log Time
+                </button>
+              </div>
+            </div>
+
+            <div class="project-card" style="opacity:0.7;">
+              <div class="project-card-header">
+                <div style="display:flex;align-items:flex-start;gap:0.625rem;">
+                  <div class="color-dot" style="background:#6b7280;margin-top:0.3rem;"></div>
+                  <div>
+                    <div class="project-name">Q1 Internal Audit</div>
+                    <div class="project-desc">Internal process review and documentation update.</div>
+                  </div>
+                </div>
+                <div class="project-actions">
+                  <button class="btn btn-ghost btn-sm" style="padding:0.25rem 0.5rem;">
+                    <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="project-meta">
+                <span class="badge badge-muted">Archived</span>
+                <span class="text-sm text-muted">60.0 hrs logged</span>
+              </div>
+              <div>
+                <button class="btn btn-outline btn-sm" disabled style="opacity:0.4;cursor:not-allowed;">
+                  <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Log Time
+                </button>
+              </div>
+            </div>
+
+          </div><!-- /#projects-list -->
+        </div><!-- /#projects-cards-view -->
+
+        <!-- ---- GRID / TABLE VIEW (hidden by default) ---- -->
+        <div id="projects-grid-view" style="display:none;">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Description</th>
+                  <th>Hours Logged</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                      <div class="color-dot" style="background:#3b9e9a;"></div>
+                      <span style="font-weight:600;">Website Redesign</span>
+                    </div>
+                  </td>
+                  <td style="max-width:20rem;overflow:hidden;text-overflow:ellipsis;color:var(--muted-foreground);">Full redesign of the marketing site including new component library.</td>
+                  <td style="font-weight:600;">42.5</td>
+                  <td><span class="badge badge-primary">Active</span></td>
+                  <td>
+                    <div style="display:flex;gap:0.375rem;justify-content:flex-end;">
+                      <button class="btn btn-outline btn-sm" onclick="prefillProject('Website Redesign'); showScreen('log')">
+                        <svg width="13" height="13" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Log Time
+                      </button>
+                      <button class="btn btn-ghost btn-sm" style="padding:0.25rem 0.5rem;" title="Edit">
+                        <svg width="13" height="13" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                      <div class="color-dot" style="background:#a78bfa;"></div>
+                      <span style="font-weight:600;">API Integration</span>
+                    </div>
+                  </td>
+                  <td style="max-width:20rem;overflow:hidden;text-overflow:ellipsis;color:var(--muted-foreground);">Connect third-party payment provider and build webhook handlers.</td>
+                  <td style="font-weight:600;">18.0</td>
+                  <td><span class="badge badge-primary">Active</span></td>
+                  <td>
+                    <div style="display:flex;gap:0.375rem;justify-content:flex-end;">
+                      <button class="btn btn-outline btn-sm" onclick="prefillProject('API Integration'); showScreen('log')">
+                        <svg width="13" height="13" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Log Time
+                      </button>
+                      <button class="btn btn-ghost btn-sm" style="padding:0.25rem 0.5rem;" title="Edit">
+                        <svg width="13" height="13" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+                <tr style="opacity:0.7;">
+                  <td>
+                    <div style="display:flex;align-items:center;gap:0.5rem;">
+                      <div class="color-dot" style="background:#6b7280;"></div>
+                      <span style="font-weight:600;">Q1 Internal Audit</span>
+                    </div>
+                  </td>
+                  <td style="max-width:20rem;overflow:hidden;text-overflow:ellipsis;color:var(--muted-foreground);">Internal process review and documentation update.</td>
+                  <td style="font-weight:600;">60.0</td>
+                  <td><span class="badge badge-muted">Archived</span></td>
+                  <td>
+                    <div style="display:flex;gap:0.375rem;justify-content:flex-end;">
+                      <button class="btn btn-outline btn-sm" disabled style="opacity:0.4;cursor:not-allowed;">
+                        <svg width="13" height="13" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        Log Time
+                      </button>
+                      <button class="btn btn-ghost btn-sm" style="padding:0.25rem 0.5rem;" title="Edit">
+                        <svg width="13" height="13" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div><!-- /#projects-grid-view -->
+
+        <!-- ---- EMPTY STATE ---- -->
+        <!-- Shown when there are zero projects; both views replaced by this -->
+        <div id="projects-empty" class="empty-state" style="display:none;">
+          <div class="empty-icon">
+            <svg width="32" height="32" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/>
+            </svg>
+          </div>
+          <h3>No projects yet</h3>
+          <p>Create your first project to start tracking time</p>
+          <button class="btn btn-primary btn-default" onclick="openDialog('dialog-create-project')">
+            <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            New Project
+          </button>
+        </div>
+
+        <!-- Wireframe annotation callout -->
+        <div class="wf-note">
+          <svg class="wf-note-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <div>
+            <span class="wf-note-label">Wireframe note — Projects screen</span>
+            Use the <strong>Cards / Grid</strong> toggle above to switch layout views (both driven by same sample data).
+            Click <button class="btn btn-ghost btn-sm" style="padding:0.125rem 0.5rem;font-size:0.8rem;" onclick="toggleEmptyProjects()">Show empty state</button> to preview the zero-projects empty screen.
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================
+           SCREEN 2 — LOG TIME (time-entry form)
+      ================================================ -->
+      <section id="screen-log" class="screen">
+        <div class="page-header">
+          <div class="page-header-text">
+            <h1>Log Time</h1>
+            <p>Record hours worked against a project</p>
+          </div>
+        </div>
+
+        <div style="max-width:40rem;">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">New Time Entry</div>
+              <div class="card-description">Fill in the details below. All fields except description are required.</div>
+            </div>
+            <div class="card-content">
+              <form onsubmit="submitEntry(event)" style="display:flex;flex-direction:column;gap:1.25rem;">
+
+                <!-- Project select -->
+                <div class="form-group">
+                  <label for="entry-project">Project</label>
+                  <div style="position:relative;">
+                    <select id="entry-project" class="input" style="appearance:none;padding-right:2rem;cursor:pointer;">
+                      <option value="">Select a project…</option>
+                      <option value="website" id="opt-website">Website Redesign</option>
+                      <option value="api">API Integration</option>
+                    </select>
+                    <svg style="position:absolute;right:0.625rem;top:50%;transform:translateY(-50%);pointer-events:none;color:var(--muted-foreground);" width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </div>
+                </div>
+
+                <!-- Date + Hours row -->
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="entry-date">Date</label>
+                    <input type="date" id="entry-date" class="input" value="2026-06-26" />
+                  </div>
+                  <div class="form-group">
+                    <label for="entry-hours">Hours</label>
+                    <input type="number" id="entry-hours" class="input" placeholder="e.g. 2.5" min="0.25" max="24" step="0.25" />
+                    <div class="form-message">Minimum 0.25 h (15 min)</div>
+                  </div>
+                </div>
+
+                <!-- Description -->
+                <div class="form-group">
+                  <label for="entry-desc">Description <span style="font-weight:400;color:var(--muted-foreground);">(optional)</span></label>
+                  <textarea id="entry-desc" class="input" placeholder="What did you work on?"></textarea>
+                </div>
+
+                <!-- Billable toggle -->
+                <div class="switch-row">
+                  <div>
+                    <div class="switch-label">Billable</div>
+                    <div class="switch-desc">Mark this entry as billable to the client</div>
+                  </div>
+                  <label class="switch" aria-label="Billable">
+                    <input type="checkbox" id="entry-billable" checked />
+                    <div class="switch-track">
+                      <div class="switch-thumb"></div>
+                    </div>
+                  </label>
+                </div>
+
+                <div style="display:flex;gap:0.75rem;padding-top:0.25rem;">
+                  <button type="submit" class="btn btn-primary btn-default">Save Entry</button>
+                  <button type="button" class="btn btn-outline btn-default" onclick="showScreen('projects')">Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <!-- Success confirmation (hidden until submit) -->
+          <div id="entry-success" style="display:none;margin-top:1rem;" class="card">
+            <div class="card-content" style="padding-top:1.5rem;">
+              <div style="display:flex;align-items:center;gap:0.75rem;">
+                <div style="width:2rem;height:2rem;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#166534" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <div>
+                  <div style="font-weight:600;font-size:0.9375rem;">Entry saved</div>
+                  <div style="font-size:0.8125rem;color:var(--muted-foreground);">Your time entry has been recorded.</div>
+                </div>
+                <button class="btn btn-outline btn-sm" onclick="showScreen('dashboard')" style="margin-left:auto;">View Dashboard</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================
+           SCREEN 3 — HOURS DASHBOARD
+      ================================================ -->
+      <section id="screen-dashboard" class="screen">
+        <div class="page-header">
+          <div class="page-header-text">
+            <h1>Hours Dashboard</h1>
+            <p>Summary of hours worked across all projects</p>
+          </div>
+          <button class="btn btn-primary btn-default" onclick="showScreen('log')">
+            <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Log Time
+          </button>
+        </div>
+
+        <!-- Stat cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Total Hours</div>
+            <div class="stat-value">120.5</div>
+            <div class="stat-sub">across all projects</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Billable</div>
+            <div class="stat-value" style="color:var(--primary);">98.0</div>
+            <div class="stat-sub">81% of total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Non-billable</div>
+            <div class="stat-value">22.5</div>
+            <div class="stat-sub">19% of total</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Active Projects</div>
+            <div class="stat-value">2</div>
+            <div class="stat-sub">1 archived</div>
+          </div>
+        </div>
+
+        <!-- Per-project table + billable ratio -->
+        <div class="card" style="margin-bottom:1.5rem;">
+          <div class="card-header row">
+            <div>
+              <div class="card-title">Hours by Project</div>
+              <div class="card-description">Billable vs non-billable breakdown per project</div>
+            </div>
+          </div>
+          <div class="card-content">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Project</th>
+                    <th>Status</th>
+                    <th>Billable (h)</th>
+                    <th>Non-billable (h)</th>
+                    <th>Total (h)</th>
+                    <th>Billable %</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="color-dot" style="background:#3b9e9a;"></div>
+                        <span style="font-weight:500;">Website Redesign</span>
+                      </div>
+                    </td>
+                    <td><span class="badge badge-primary">Active</span></td>
+                    <td>38.5</td>
+                    <td>4.0</td>
+                    <td style="font-weight:600;">42.5</td>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:0.625rem;min-width:8rem;">
+                        <div class="progress-bar" style="flex:1;">
+                          <div class="progress-fill" style="width:91%;"></div>
+                        </div>
+                        <span style="font-size:0.8125rem;color:var(--muted-foreground);width:2.5rem;text-align:right;">91%</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="color-dot" style="background:#a78bfa;"></div>
+                        <span style="font-weight:500;">API Integration</span>
+                      </div>
+                    </td>
+                    <td><span class="badge badge-primary">Active</span></td>
+                    <td>18.0</td>
+                    <td>0.0</td>
+                    <td style="font-weight:600;">18.0</td>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:0.625rem;min-width:8rem;">
+                        <div class="progress-bar" style="flex:1;">
+                          <div class="progress-fill" style="width:100%;"></div>
+                        </div>
+                        <span style="font-size:0.8125rem;color:var(--muted-foreground);width:2.5rem;text-align:right;">100%</span>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr style="opacity:0.7;">
+                    <td>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="color-dot" style="background:#6b7280;"></div>
+                        <span style="font-weight:500;">Q1 Internal Audit</span>
+                      </div>
+                    </td>
+                    <td><span class="badge badge-muted">Archived</span></td>
+                    <td>41.5</td>
+                    <td>18.5</td>
+                    <td style="font-weight:600;">60.0</td>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:0.625rem;min-width:8rem;">
+                        <div class="progress-bar" style="flex:1;">
+                          <div class="progress-fill" style="width:69%;"></div>
+                        </div>
+                        <span style="font-size:0.8125rem;color:var(--muted-foreground);width:2.5rem;text-align:right;">69%</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot style="background:rgba(245,245,245,0.5);border-top:1px solid var(--border);">
+                  <tr>
+                    <td colspan="2" style="padding:0.75rem 1rem;font-weight:600;font-size:0.875rem;">Total</td>
+                    <td style="padding:0.75rem 1rem;font-weight:600;">98.0</td>
+                    <td style="padding:0.75rem 1rem;font-weight:600;">22.5</td>
+                    <td style="padding:0.75rem 1rem;font-weight:700;font-size:0.9375rem;">120.5</td>
+                    <td style="padding:0.75rem 1rem;">
+                      <div style="display:flex;align-items:center;gap:0.625rem;min-width:8rem;">
+                        <div class="progress-bar" style="flex:1;">
+                          <div class="progress-fill" style="width:81%;"></div>
+                        </div>
+                        <span style="font-size:0.8125rem;color:var(--muted-foreground);width:2.5rem;text-align:right;">81%</span>
+                      </div>
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent entries table -->
+        <div class="card">
+          <div class="card-header row">
+            <div>
+              <div class="card-title">Recent Entries</div>
+              <div class="card-description">Last 5 time entries across all projects</div>
+            </div>
+          </div>
+          <div class="card-content">
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Project</th>
+                    <th>Description</th>
+                    <th>Hours</th>
+                    <th>Billable</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td style="color:var(--muted-foreground);">2026-06-26</td>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="color-dot" style="background:#3b9e9a;"></div>
+                        Website Redesign
+                      </div>
+                    </td>
+                    <td style="max-width:18rem;overflow:hidden;text-overflow:ellipsis;color:var(--foreground);">Implemented responsive nav component</td>
+                    <td style="font-weight:600;">3.5</td>
+                    <td><span class="badge badge-success">Yes</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:var(--muted-foreground);">2026-06-25</td>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="color-dot" style="background:#a78bfa;"></div>
+                        API Integration
+                      </div>
+                    </td>
+                    <td style="max-width:18rem;overflow:hidden;text-overflow:ellipsis;">Webhook handler for payment events</td>
+                    <td style="font-weight:600;">4.0</td>
+                    <td><span class="badge badge-success">Yes</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:var(--muted-foreground);">2026-06-25</td>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="color-dot" style="background:#3b9e9a;"></div>
+                        Website Redesign
+                      </div>
+                    </td>
+                    <td style="max-width:18rem;overflow:hidden;text-overflow:ellipsis;">Team sync + planning</td>
+                    <td style="font-weight:600;">1.0</td>
+                    <td><span class="badge badge-muted">No</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:var(--muted-foreground);">2026-06-24</td>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="color-dot" style="background:#3b9e9a;"></div>
+                        Website Redesign
+                      </div>
+                    </td>
+                    <td style="max-width:18rem;overflow:hidden;text-overflow:ellipsis;">Design review and feedback incorporation</td>
+                    <td style="font-weight:600;">2.5</td>
+                    <td><span class="badge badge-success">Yes</span></td>
+                  </tr>
+                  <tr>
+                    <td style="color:var(--muted-foreground);">2026-06-23</td>
+                    <td>
+                      <div style="display:flex;align-items:center;gap:0.5rem;">
+                        <div class="color-dot" style="background:#a78bfa;"></div>
+                        API Integration
+                      </div>
+                    </td>
+                    <td style="max-width:18rem;overflow:hidden;text-overflow:ellipsis;">API key management endpoint</td>
+                    <td style="font-weight:600;">3.0</td>
+                    <td><span class="badge badge-success">Yes</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Empty state (shown when no entries at all) -->
+        <div id="dashboard-empty" class="empty-state" style="display:none;">
+          <div class="empty-icon">
+            <svg width="32" height="32" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" x2="18" y1="20" y2="10"/><line x1="12" x2="12" y1="20" y2="4"/><line x1="6" x2="6" y1="20" y2="14"/>
+            </svg>
+          </div>
+          <h3>No hours logged yet</h3>
+          <p>Start tracking time to see your dashboard</p>
+          <button class="btn btn-primary btn-default" onclick="showScreen('log')">
+            <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Log Time
+          </button>
+        </div>
+
+      </section>
+
+    </div><!-- /.inner -->
+  </main>
+
+  <footer>
+    FastAPI Template &mdash; Time Tracking &mdash; TRRND-3 wireframe (not production)
+  </footer>
+</div>
+
+<!-- =====================================================
+     DIALOG — Create Project
+===================================================== -->
+<div class="dialog-overlay" id="dialog-create-project" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+  <div class="dialog-content">
+    <button class="dialog-close" onclick="closeDialog('dialog-create-project')" aria-label="Close">&#x2715;</button>
+
+    <div class="dialog-header">
+      <div class="dialog-title" id="dlg-title">Create Project</div>
+      <div class="dialog-description">Add a new project to track time against.</div>
+    </div>
+
+    <form onsubmit="createProject(event)" style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="form-group">
+        <label for="proj-name">Name <span style="color:var(--destructive);">*</span></label>
+        <input type="text" id="proj-name" class="input" placeholder="e.g. Website Redesign" required autofocus />
+      </div>
+
+      <div class="form-group">
+        <label for="proj-desc">Description <span style="font-weight:400;color:var(--muted-foreground);">(optional)</span></label>
+        <textarea id="proj-desc" class="input" placeholder="Brief description of the project…"></textarea>
+      </div>
+
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline btn-default" onclick="closeDialog('dialog-create-project')">Cancel</button>
+        <button type="submit" class="btn btn-primary btn-default">Create Project</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- =====================================================
+     JAVASCRIPT — screen switching + dialog + form
+===================================================== -->
+<script>
+  /* --- Screen navigation --- */
+  const screenMap = {
+    projects:  { id: 'screen-projects',  nav: 'nav-projects',  crumb: 'Projects' },
+    log:       { id: 'screen-log',       nav: 'nav-log',       crumb: 'Log Time' },
+    dashboard: { id: 'screen-dashboard', nav: 'nav-dashboard', crumb: 'Hours Dashboard' },
+  };
+
+  function showScreen(name) {
+    // hide all screens
+    Object.values(screenMap).forEach(s => {
+      document.getElementById(s.id).classList.remove('active');
+      const navEl = document.getElementById(s.nav);
+      if (navEl) navEl.classList.remove('active');
+    });
+
+    // activate target
+    const target = screenMap[name];
+    if (!target) return;
+    document.getElementById(target.id).classList.add('active');
+    const navEl = document.getElementById(target.nav);
+    if (navEl) navEl.classList.add('active');
+    document.getElementById('breadcrumb').textContent = target.crumb;
+    window.scrollTo(0, 0);
+  }
+
+  /* --- Dialog --- */
+  function openDialog(id) {
+    document.getElementById(id).classList.add('open');
+  }
+
+  function closeDialog(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  // Close on overlay click
+  document.querySelectorAll('.dialog-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) closeDialog(this.id);
+    });
+  });
+
+  /* --- Create project (mock) --- */
+  function createProject(e) {
+    e.preventDefault();
+    const name = document.getElementById('proj-name').value.trim();
+    if (!name) return;
+
+    // In a real app this would POST to /api/v1/projects
+    const colors = ['#f59e0b', '#10b981', '#6366f1', '#f43f5e'];
+    const color = colors[Math.floor(Math.random() * colors.length)];
+    const desc = document.getElementById('proj-desc').value.trim();
+
+    // Add card to cards view
+    const cardGrid = document.getElementById('projects-list');
+    const card = document.createElement('div');
+    card.className = 'project-card';
+    card.innerHTML = `
+      <div class="project-card-header">
+        <div style="display:flex;align-items:flex-start;gap:0.625rem;">
+          <div class="color-dot" style="background:${color};margin-top:0.3rem;"></div>
+          <div>
+            <div class="project-name">${escHtml(name)}</div>
+            <div class="project-desc">${escHtml(desc) || '<em style="opacity:0.6;">No description</em>'}</div>
+          </div>
+        </div>
+        <div class="project-actions">
+          <button class="btn btn-ghost btn-sm" style="padding:0.25rem 0.5rem;" title="Edit">
+            <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="project-meta">
+        <span class="badge badge-primary">Active</span>
+        <span class="text-sm text-muted">0 hrs logged</span>
+      </div>
+      <div>
+        <button class="btn btn-outline btn-sm" onclick="prefillProject('${escHtml(name)}'); showScreen('log')">
+          <svg width="14" height="14" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Log Time
+        </button>
+      </div>`;
+    cardGrid.insertBefore(card, cardGrid.firstChild);
+
+    // Add row to grid/table view
+    const tableBody = document.querySelector('#projects-grid-view tbody');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <div class="color-dot" style="background:${color};"></div>
+          <span style="font-weight:600;">${escHtml(name)}</span>
+        </div>
+      </td>
+      <td style="max-width:20rem;overflow:hidden;text-overflow:ellipsis;color:var(--muted-foreground);">${escHtml(desc) || '—'}</td>
+      <td style="font-weight:600;">0</td>
+      <td><span class="badge badge-primary">Active</span></td>
+      <td>
+        <div style="display:flex;gap:0.375rem;justify-content:flex-end;">
+          <button class="btn btn-outline btn-sm" onclick="prefillProject('${escHtml(name)}'); showScreen('log')">
+            <svg width="13" height="13" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Log Time
+          </button>
+          <button class="btn btn-ghost btn-sm" style="padding:0.25rem 0.5rem;" title="Edit">
+            <svg width="13" height="13" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
+          </button>
+        </div>
+      </td>`;
+    tableBody.insertBefore(row, tableBody.firstChild);
+
+    // Hide empty state, restore data views
+    document.getElementById('projects-empty').style.display = 'none';
+    setProjectsView(currentProjectsView);
+
+    // reset + close
+    e.target.reset();
+    closeDialog('dialog-create-project');
+  }
+
+  /* --- Log time helpers --- */
+  function prefillProject(name) {
+    const sel = document.getElementById('entry-project');
+    // try to match an existing option; otherwise add a transient one
+    let found = false;
+    for (const opt of sel.options) {
+      if (opt.text === name) { sel.value = opt.value; found = true; break; }
+    }
+    if (!found) {
+      const opt = document.createElement('option');
+      opt.value = name.toLowerCase().replace(/\s+/g, '-');
+      opt.text = name;
+      opt.selected = true;
+      sel.appendChild(opt);
+    }
+    document.getElementById('entry-success').style.display = 'none';
+  }
+
+  function submitEntry(e) {
+    e.preventDefault();
+    // mock save
+    const success = document.getElementById('entry-success');
+    success.style.display = '';
+    e.target.reset();
+  }
+
+  /* --- Projects view toggle (Cards / Grid) --- */
+  var currentProjectsView = 'cards';
+
+  function setProjectsView(view) {
+    currentProjectsView = view;
+    const cardsView = document.getElementById('projects-cards-view');
+    const gridView  = document.getElementById('projects-grid-view');
+    const btnCards  = document.getElementById('view-btn-cards');
+    const btnGrid   = document.getElementById('view-btn-grid');
+
+    // Only show data views if not in empty state
+    const isEmpty = document.getElementById('projects-empty').style.display !== 'none';
+
+    if (view === 'cards') {
+      cardsView.style.display = isEmpty ? 'none' : '';
+      gridView.style.display  = 'none';
+      btnCards.classList.add('active');
+      btnGrid.classList.remove('active');
+    } else {
+      cardsView.style.display = 'none';
+      gridView.style.display  = isEmpty ? 'none' : '';
+      btnCards.classList.remove('active');
+      btnGrid.classList.add('active');
+    }
+  }
+
+  /* --- Empty state toggle --- */
+  function toggleEmptyProjects() {
+    const cardsView = document.getElementById('projects-cards-view');
+    const gridView  = document.getElementById('projects-grid-view');
+    const empty     = document.getElementById('projects-empty');
+    const isShowingData = empty.style.display === 'none' || empty.style.display === '';
+    // When toggling to empty, hide both data views
+    // When toggling back to data, show whichever view is active
+    if (isShowingData && (cardsView.style.display !== 'none' || gridView.style.display !== 'none')) {
+      cardsView.style.display = 'none';
+      gridView.style.display  = 'none';
+      empty.style.display     = '';
+    } else {
+      empty.style.display = 'none';
+      setProjectsView(currentProjectsView);
+    }
+  }
+
+  /* --- XSS-safe helper --- */
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* --- Initialise active nav state --- */
+  showScreen('projects');
+</script>
+
+</body>
+</html>
