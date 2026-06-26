@@ -1,6 +1,7 @@
 from typing import Any
 
 from fastapi import APIRouter
+from sqlalchemy import case
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
@@ -27,7 +28,7 @@ def get_dashboard_summary(
             func.coalesce(func.sum(TimeEntry.hours), 0).label("total_hours"),
             func.coalesce(
                 func.sum(
-                    func.case(
+                    case(
                         (TimeEntry.is_billable == True, TimeEntry.hours),  # noqa: E712
                         else_=0,
                     )
