@@ -1,13 +1,18 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
+from decimal import Decimal
 
 from pydantic import EmailStr
-from sqlalchemy import DateTime
+from sqlalchemy import DateTime, Numeric
 from sqlmodel import Field, Relationship, SQLModel
 
 
 def get_datetime_utc() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def get_today() -> date:
+    return datetime.now(timezone.utc).date()
 
 
 # Shared properties
@@ -54,6 +59,8 @@ class User(UserBase, table=True):
         sa_type=DateTime(timezone=True),  # type: ignore
     )
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    projects: list["Project"] = Relationship(back_populates="owner", cascade_delete=True)
+    time_entries: list["TimeEntry"] = Relationship(back_populates="owner", cascade_delete=True)
 
 
 # Properties to return via API, id is always required
@@ -127,3 +134,123 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+
+
+# ---------------------------------------------------------------------------
+# Project model family (TRRND-4)
+# ---------------------------------------------------------------------------
+
+class ProjectBase(SQLModel):
+    name: str = Field(min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=1000)
+    status: str = Field(default="active", max_length=50)
+
+
+class ProjectCreate(ProjectBase):
+    pass
+
+
+class ProjectUpdate(SQLModel):
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=1000)
+    status: str | None = Field(default=None, max_length=50)
+
+
+class Project(ProjectBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    owner_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    owner: User | None = Relationship(back_populates="projects")
+    time_entries: list["TimeEntry"] = Relationship(
+        back_populates="project", cascade_delete=True
+    )
+
+
+class ProjectPublic(ProjectBase):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class ProjectsPublic(SQLModel):
+    data: list[ProjectPublic]
+    count: int
+
+
+# ---------------------------------------------------------------------------
+# TimeEntry model family (TRRND-5)
+# ---------------------------------------------------------------------------
+
+class TimeEntryBase(SQLModel):
+    project_id: uuid.UUID
+    entry_date: date = Field(default_factory=get_today)
+    hours: Decimal
+    description: str | None = Field(default=None, max_length=1000)
+    is_billable: bool = Field(default=True)
+
+
+class TimeEntryCreate(TimeEntryBase):
+    pass
+
+
+class TimeEntryPublic(TimeEntryBase):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class TimeEntriesPublic(SQLModel):
+    data: list[TimeEntryPublic]
+    count: int
+
+
+class TimeEntry(TimeEntryBase, table=True):
+    __tablename__ = "time_entry"  # type: ignore
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    owner_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    project_id: uuid.UUID = Field(  # type: ignore[assignment]
+        foreign_key="project.id",
+        nullable=False,
+        ondelete="CASCADE",
+    )
+    hours: Decimal = Field(  # type: ignore[assignment]
+        sa_type=Numeric(6, 2),  # type: ignore
+    )
+    owner: User | None = Relationship(back_populates="time_entries")
+    project: Project | None = Relationship(back_populates="time_entries")
+
+
+# ---------------------------------------------------------------------------
+# Dashboard summary schemas (TRRND-7)
+# ---------------------------------------------------------------------------
+
+class ProjectSummary(SQLModel):
+    project_id: uuid.UUID
+    project_name: str
+    status: str
+    total_hours: float
+    billable_hours: float
+    non_billable_hours: float
+    billable_pct: float
+
+
+class DashboardSummary(SQLModel):
+    total_hours: float
+    billable_hours: float
+    non_billable_hours: float
+    billable_pct: float
+    active_projects: int
+    total_projects: int
+    by_project: list[ProjectSummary]

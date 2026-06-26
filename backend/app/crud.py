@@ -4,7 +4,18 @@ from typing import Any
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
+from app.models import (
+    Item,
+    ItemCreate,
+    Project,
+    ProjectCreate,
+    ProjectUpdate,
+    TimeEntry,
+    TimeEntryCreate,
+    User,
+    UserCreate,
+    UserUpdate,
+)
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -66,3 +77,65 @@ def create_item(*, session: Session, item_in: ItemCreate, owner_id: uuid.UUID) -
     session.commit()
     session.refresh(db_item)
     return db_item
+
+
+# ---------------------------------------------------------------------------
+# Project CRUD (TRRND-4)
+# ---------------------------------------------------------------------------
+
+
+def create_project(
+    *, session: Session, project_in: ProjectCreate, owner_id: uuid.UUID
+) -> Project:
+    db_project = Project.model_validate(project_in, update={"owner_id": owner_id})
+    session.add(db_project)
+    session.commit()
+    session.refresh(db_project)
+    return db_project
+
+
+def get_project(
+    *, session: Session, project_id: uuid.UUID, owner_id: uuid.UUID
+) -> Project | None:
+    statement = select(Project).where(
+        Project.id == project_id, Project.owner_id == owner_id
+    )
+    return session.exec(statement).first()
+
+
+def update_project(
+    *, session: Session, db_project: Project, project_in: ProjectUpdate
+) -> Project:
+    update_dict = project_in.model_dump(exclude_unset=True)
+    db_project.sqlmodel_update(update_dict)
+    session.add(db_project)
+    session.commit()
+    session.refresh(db_project)
+    return db_project
+
+
+# ---------------------------------------------------------------------------
+# TimeEntry CRUD (TRRND-5)
+# ---------------------------------------------------------------------------
+
+
+def create_time_entry(
+    *,
+    session: Session,
+    entry_in: TimeEntryCreate,
+    owner_id: uuid.UUID,
+) -> TimeEntry:
+    db_entry = TimeEntry.model_validate(entry_in, update={"owner_id": owner_id})
+    session.add(db_entry)
+    session.commit()
+    session.refresh(db_entry)
+    return db_entry
+
+
+def get_time_entry(
+    *, session: Session, entry_id: uuid.UUID, owner_id: uuid.UUID
+) -> TimeEntry | None:
+    statement = select(TimeEntry).where(
+        TimeEntry.id == entry_id, TimeEntry.owner_id == owner_id
+    )
+    return session.exec(statement).first()
