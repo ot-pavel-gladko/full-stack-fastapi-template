@@ -1,0 +1,12 @@
+{
+  "run_id": "pavel.gladko-20260626-1336",
+  "project_key": "TRRND",
+  "epic_key": "TRRND-3",
+  "feature": "Time tracking",
+  "feature_slug": "time-tracking",
+  "branch": "feature/TRRND-3-time-tracking",
+  "current_step": 0,
+  "stories": [],
+  "artifacts": { "wireframe": null, "pr": null },
+  "reviews": []
+}
