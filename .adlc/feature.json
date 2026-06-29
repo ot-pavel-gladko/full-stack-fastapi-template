@@ -6,11 +6,12 @@
   "feature_slug": "time-tracking",
   "base_branch": "master",
   "branch": "feature/TRRND-12-time-tracking",
-  "current_step": 2,
-  "stories": [],
+  "current_step": 5,
+  "stories": ["TRRND-13", "TRRND-14", "TRRND-15", "TRRND-16", "TRRND-17", "TRRND-18", "TRRND-19", "TRRND-20", "TRRND-21"],
   "artifacts": { "wireframe": "wireframes/TRRND-12.html", "pr": null },
   "reviews": [
     { "step": 2, "gate": "wireframe", "round": 1, "decision": "rejected", "notes": "PO asked for Projects cards/table view toggle + an orange 'wireframe' banner on every screen" },
-    { "step": 2, "gate": "wireframe", "round": 2, "decision": "approved" }
+    { "step": 2, "gate": "wireframe", "round": 2, "decision": "approved" },
+    { "step": 4, "gate": "requirements", "decision": "approved", "notes": "All 9 stories (TRRND-13..21) approved and moved BA Review -> Ready for Dev" }
   ]
 }
