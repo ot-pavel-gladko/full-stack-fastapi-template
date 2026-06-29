@@ -6,8 +6,11 @@
   "feature_slug": "time-tracking",
   "base_branch": "master",
   "branch": "feature/TRRND-12-time-tracking",
-  "current_step": 0,
+  "current_step": 2,
   "stories": [],
-  "artifacts": { "wireframe": null, "pr": null },
-  "reviews": []
+  "artifacts": { "wireframe": "wireframes/TRRND-12.html", "pr": null },
+  "reviews": [
+    { "step": 2, "gate": "wireframe", "round": 1, "decision": "rejected", "notes": "PO asked for Projects cards/table view toggle + an orange 'wireframe' banner on every screen" },
+    { "step": 2, "gate": "wireframe", "round": 2, "decision": "approved" }
+  ]
 }

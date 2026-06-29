@@ -1,0 +1,1484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TRRND-12 — Time Tracking Wireframe</title>
+  <style>
+    /* ─── Design tokens from frontend/src/index.css ─────────────────────── */
+    :root {
+      --radius: 0.625rem;
+      --background:        #ffffff;
+      --foreground:        #0f0f0f;
+      --card:              #ffffff;
+      --card-foreground:   #0f0f0f;
+      --primary:           #3b8f8c;   /* oklch(0.5982 0.10687 182.4689) → teal */
+      --primary-foreground:#fafafa;
+      --secondary:         #f5f5f5;
+      --secondary-foreground: #1a1a1a;
+      --muted:             #f5f5f5;
+      --muted-foreground:  #6b6b6b;
+      --accent:            #f5f5f5;
+      --accent-foreground: #1a1a1a;
+      --destructive:       #e53e3e;
+      --border:            #e5e5e5;
+      --input:             #e5e5e5;
+      --ring:              #a0a0a0;
+      --sidebar:           #fafafa;
+      --sidebar-foreground:#0f0f0f;
+      --sidebar-primary:   #3b8f8c;
+      --sidebar-accent:    #f5f5f5;
+      --sidebar-border:    #e5e5e5;
+
+      /* chart tokens */
+      --chart-1: #d97706;
+      --chart-2: #0f9488;
+      --chart-3: #3b5998;
+      --chart-4: #84cc16;
+      --chart-5: #f59e0b;
+    }
+
+    /* ─── Reset & base ───────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      background: var(--background);
+      color: var(--foreground);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ─── Layout shell (mirrors _layout.tsx: Sidebar + SidebarInset) ────── */
+    #sidebar {
+      width: 16rem;
+      min-width: 16rem;
+      background: var(--sidebar);
+      border-right: 1px solid var(--sidebar-border);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+    #sidebar-header {
+      padding: 1.5rem 1rem;
+      border-bottom: 1px solid var(--sidebar-border);
+    }
+    .logo {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--sidebar-primary);
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: var(--foreground); }
+
+    #sidebar-nav {
+      flex: 1;
+      padding: 0.75rem 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.125rem;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.5rem 0.75rem;
+      border-radius: calc(var(--radius) - 2px);
+      color: var(--sidebar-foreground);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      text-decoration: none;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
+      transition: background 0.15s;
+    }
+    .nav-item:hover { background: var(--sidebar-accent); }
+    .nav-item.active {
+      background: var(--sidebar-primary);
+      color: var(--primary-foreground);
+    }
+    .nav-item svg { width: 1rem; height: 1rem; flex-shrink: 0; }
+
+    /* Time Tracking section label */
+    .nav-section-label {
+      padding: 0.75rem 0.75rem 0.25rem;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted-foreground);
+    }
+
+    #sidebar-footer {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid var(--sidebar-border);
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .avatar-sm {
+      width: 1.75rem; height: 1.75rem;
+      border-radius: 50%;
+      background: var(--primary);
+      color: var(--primary-foreground);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700;
+    }
+
+    /* ─── Main area ──────────────────────────────────────────────────────── */
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    #topbar {
+      height: 4rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 1.5rem;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+    .topbar-trigger {
+      width: 2rem; height: 2rem;
+      border-radius: calc(var(--radius) - 2px);
+      border: none; background: transparent; cursor: pointer;
+      color: var(--muted-foreground);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .topbar-trigger:hover { background: var(--accent); }
+    #page-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 2rem;
+    }
+    .page-inner {
+      max-width: 80rem;
+      margin: 0 auto;
+    }
+
+    /* ─── Page header row (mirrors items.tsx header pattern) ─────────────── */
+    .page-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+    }
+    .page-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      line-height: 1.2;
+    }
+    .page-subtitle {
+      color: var(--muted-foreground);
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+
+    /* ─── Buttons (mirrors button.tsx variants) ─────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      white-space: nowrap;
+      border-radius: calc(var(--radius) - 2px);
+      font-size: 0.875rem;
+      font-weight: 500;
+      height: 2.25rem;
+      padding: 0 1rem;
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s, opacity 0.15s;
+      text-decoration: none;
+    }
+    .btn svg { width: 1rem; height: 1rem; }
+    .btn-default {
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+    .btn-default:hover { opacity: 0.9; }
+    .btn-outline {
+      background: var(--background);
+      color: var(--foreground);
+      border: 1px solid var(--border);
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+    }
+    .btn-outline:hover { background: var(--accent); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--foreground);
+    }
+    .btn-ghost:hover { background: var(--accent); }
+    .btn-destructive {
+      background: var(--destructive);
+      color: #fff;
+    }
+    .btn-destructive:hover { opacity: 0.9; }
+    .btn-sm {
+      height: 2rem;
+      padding: 0 0.75rem;
+      font-size: 0.8125rem;
+    }
+
+    /* ─── Badge ─────────────────────────────────────────────────────────── */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      border-radius: 9999px;
+      padding: 0.125rem 0.625rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      line-height: 1.25rem;
+    }
+    .badge-teal  { background: #dcfaf8; color: #0f6b68; }
+    .badge-slate { background: var(--muted); color: var(--muted-foreground); }
+    .badge-amber { background: #fef9c3; color: #854d0e; }
+
+    /* ─── Card (mirrors card.tsx) ────────────────────────────────────────── */
+    .card {
+      background: var(--card);
+      color: var(--card-foreground);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .card-header { padding: 1.5rem 1.5rem 0; }
+    .card-title { font-weight: 600; font-size: 1rem; line-height: 1; }
+    .card-description { color: var(--muted-foreground); font-size: 0.875rem; margin-top: 0.375rem; }
+    .card-content { padding: 1.5rem; }
+    .card-footer {
+      padding: 0 1.5rem 1.5rem;
+      display: flex;
+      align-items: center;
+    }
+
+    /* ─── Table (mirrors table.tsx) ──────────────────────────────────────── */
+    .table-container {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+    thead { background: rgba(245,245,245,0.5); }
+    thead tr { border-bottom: 1px solid var(--border); }
+    th {
+      padding: 0.75rem 1rem;
+      text-align: left;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--muted-foreground);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(245,245,245,0.5); }
+    td {
+      padding: 0.75rem 1rem;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    /* ─── Form controls (mirrors input.tsx, label.tsx, checkbox.tsx) ─────── */
+    .form-group { display: flex; flex-direction: column; gap: 0.375rem; }
+    label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--foreground);
+    }
+    .form-input {
+      height: 2.25rem;
+      width: 100%;
+      border: 1px solid var(--input);
+      border-radius: calc(var(--radius) - 2px);
+      background: transparent;
+      padding: 0 0.75rem;
+      font-size: 0.875rem;
+      color: var(--foreground);
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      font-family: inherit;
+    }
+    .form-input:focus {
+      border-color: var(--ring);
+      box-shadow: 0 0 0 3px rgba(160,160,160,0.25);
+    }
+    textarea.form-input {
+      height: auto;
+      padding: 0.5rem 0.75rem;
+      resize: vertical;
+      min-height: 5rem;
+    }
+    select.form-input { cursor: pointer; }
+
+    /* Checkbox row */
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 0.625rem;
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 2px);
+      background: var(--background);
+      cursor: pointer;
+    }
+    .checkbox-row:hover { background: var(--accent); }
+    .checkbox-row input[type="checkbox"] {
+      width: 1rem; height: 1rem;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .checkbox-label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .checkbox-hint {
+      font-size: 0.8125rem;
+      color: var(--muted-foreground);
+    }
+
+    /* Form grid */
+    .form-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .form-section-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--muted-foreground);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.75rem;
+    }
+    .form-divider { border: none; border-top: 1px solid var(--border); margin: 1.25rem 0; }
+
+    /* ─── Empty state (mirrors items.tsx empty state) ────────────────────── */
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4rem 1.5rem;
+    }
+    .empty-state-icon-wrap {
+      border-radius: 50%;
+      background: var(--muted);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .empty-state-icon-wrap svg { width: 2rem; height: 2rem; color: var(--muted-foreground); display: block; }
+    .empty-state h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.375rem;
+    }
+    .empty-state p {
+      color: var(--muted-foreground);
+      font-size: 0.875rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* ─── Project cards grid ──────────────────────────────────────────────── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+      gap: 1rem;
+    }
+    .project-card {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      cursor: pointer;
+      transition: box-shadow 0.15s;
+    }
+    .project-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    .project-card-body {
+      padding: 1.25rem 1.5rem 1rem;
+      flex: 1;
+    }
+    .project-card-name {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 0.375rem;
+    }
+    .project-card-desc {
+      font-size: 0.8125rem;
+      color: var(--muted-foreground);
+      line-height: 1.5;
+    }
+    .project-card-meta {
+      padding: 0.75rem 1.5rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.8125rem;
+      color: var(--muted-foreground);
+    }
+    .project-card-hours {
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    /* ─── Dashboard stats strip ─────────────────────────────────────────── */
+    .stats-strip {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .stat-card {
+      padding: 1.25rem 1.5rem;
+    }
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted-foreground);
+      margin-bottom: 0.5rem;
+    }
+    .stat-value {
+      font-size: 1.875rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .stat-sub {
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      margin-top: 0.375rem;
+    }
+
+    /* Progress bar */
+    .progress-bar-track {
+      height: 0.5rem;
+      background: var(--muted);
+      border-radius: 9999px;
+      overflow: hidden;
+      margin-top: 0.625rem;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 9999px;
+      background: var(--primary);
+    }
+
+    /* ─── Dialog / modal overlay ─────────────────────────────────────────── */
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 50;
+      align-items: center;
+      justify-content: center;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: var(--background);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.18);
+      width: 100%;
+      max-width: 32rem;
+      padding: 1.5rem;
+      position: relative;
+    }
+    .modal-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      line-height: 1;
+      margin-bottom: 0.375rem;
+    }
+    .modal-description {
+      font-size: 0.875rem;
+      color: var(--muted-foreground);
+      margin-bottom: 1.25rem;
+    }
+    .modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0.25rem;
+      border-radius: calc(var(--radius) - 4px);
+      color: var(--muted-foreground);
+      opacity: 0.7;
+    }
+    .modal-close:hover { opacity: 1; background: var(--accent); }
+    .modal-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      margin-top: 1.25rem;
+    }
+
+    /* ─── Tab navigation inside a screen ────────────────────────────────── */
+    .tabs-list {
+      display: inline-flex;
+      border-radius: calc(var(--radius) - 2px);
+      background: var(--muted);
+      padding: 0.25rem;
+      gap: 0.125rem;
+      margin-bottom: 1.5rem;
+    }
+    .tab-trigger {
+      padding: 0.375rem 0.875rem;
+      border-radius: calc(var(--radius) - 4px);
+      border: none;
+      background: transparent;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--muted-foreground);
+      transition: background 0.15s, color 0.15s;
+    }
+    .tab-trigger.active {
+      background: var(--background);
+      color: var(--foreground);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    /* ─── Screen visibility ──────────────────────────────────────────────── */
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ─── Tooltip annotation ─────────────────────────────────────────────── */
+    .annotation {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      font-style: italic;
+      margin-top: 0.25rem;
+    }
+
+    /* Separator */
+    .sep { border: none; border-top: 1px solid var(--border); }
+
+    /* Inline text helpers */
+    .text-muted { color: var(--muted-foreground); }
+    .text-sm    { font-size: 0.875rem; }
+    .text-xs    { font-size: 0.75rem; }
+    .font-semibold { font-weight: 600; }
+    .gap-4  { gap: 1rem; }
+
+    /* Color dot */
+    .dot {
+      width: 0.625rem; height: 0.625rem;
+      border-radius: 50%;
+      display: inline-block;
+      flex-shrink: 0;
+    }
+    .dot-teal  { background: var(--primary); }
+    .dot-amber { background: var(--chart-5); }
+    .dot-slate { background: #94a3b8; }
+    .dot-blue  { background: #60a5fa; }
+
+    /* Flex utils */
+    .flex { display: flex; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .flex-col { flex-direction: column; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .mt-1 { margin-top: 0.25rem; }
+    .mt-2 { margin-top: 0.5rem; }
+    .mt-4 { margin-top: 1rem; }
+    .mb-4 { margin-bottom: 1rem; }
+    .mb-6 { margin-bottom: 1.5rem; }
+
+    /* Row with per-project breakdown */
+    .project-row {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .project-row:last-child { border-bottom: none; }
+    .project-row-name { flex: 1; font-size: 0.875rem; font-weight: 500; }
+    .project-row-hours { font-size: 0.875rem; font-weight: 600; color: var(--primary); min-width: 4rem; text-align: right; }
+    .project-row-bar { flex: 2; }
+
+    /* Footer */
+    #app-footer {
+      border-top: 1px solid var(--border);
+      padding: 0.875rem 2rem;
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    /* ─── Wireframe banner ───────────────────────────────────────────────── */
+    #wf-banner {
+      background: #fff7ed;               /* amber-50 */
+      border-bottom: 2px solid #f97316; /* orange-500 */
+      color: #9a3412;                    /* orange-800 */
+      font-size: 0.8125rem;
+      font-weight: 500;
+      padding: 0.5rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+      letter-spacing: 0.01em;
+    }
+    #wf-banner svg { width: 1rem; height: 1rem; flex-shrink: 0; color: #ea580c; }
+
+    /* ─── Projects view toggle (card / table icon buttons) ───────────────── */
+    .view-toggle {
+      display: inline-flex;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) - 2px);
+      overflow: hidden;
+    }
+    .view-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.25rem;
+      height: 2.25rem;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      color: var(--muted-foreground);
+      transition: background 0.12s, color 0.12s;
+    }
+    .view-btn + .view-btn { border-left: 1px solid var(--border); }
+    .view-btn:hover { background: var(--accent); color: var(--foreground); }
+    .view-btn.active {
+      background: var(--primary);
+      color: var(--primary-foreground);
+    }
+    .view-btn svg { width: 1rem; height: 1rem; }
+
+    /* Projects table action button */
+    .row-action-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.375rem;
+      padding: 0 0.625rem;
+      height: 1.875rem;
+      border-radius: calc(var(--radius) - 4px);
+      border: 1px solid var(--border);
+      background: var(--background);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--foreground);
+      transition: background 0.12s;
+    }
+    .row-action-btn:hover { background: var(--accent); }
+    .row-action-btn svg { width: 0.875rem; height: 0.875rem; }
+
+    @media (max-width: 768px) {
+      #sidebar { display: none; }
+      .stats-strip { grid-template-columns: 1fr 1fr; }
+      .form-grid-2 { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     SIDEBAR — mirrors AppSidebar.tsx + sidebar.tsx
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="sidebar">
+  <div id="sidebar-header">
+    <div class="logo">FastAPI<span> App</span></div>
+  </div>
+  <nav id="sidebar-nav">
+    <!-- Existing nav items -->
+    <button class="nav-item" onclick="showScreen('dashboard-main')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </button>
+    <button class="nav-item" onclick="showScreen('dashboard-main')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+      Items
+    </button>
+
+    <!-- Time Tracking section — new nav group -->
+    <div class="nav-section-label" style="margin-top:0.5rem;">Time Tracking</div>
+
+    <button class="nav-item" id="nav-projects" onclick="showScreen('projects')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+      Projects
+    </button>
+    <button class="nav-item" id="nav-time-entry" onclick="showScreen('time-entry')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+      Log Time
+    </button>
+    <button class="nav-item" id="nav-hours-dashboard" onclick="showScreen('hours-dashboard')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+      Hours Report
+    </button>
+  </nav>
+  <div id="sidebar-footer">
+    <div class="avatar-sm">JD</div>
+    <div>
+      <div style="font-weight:600;color:var(--foreground);font-size:0.8125rem;">Jane Doe</div>
+      <div>jane@example.com</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MAIN AREA
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="main">
+  <!-- Sticky top bar (mirrors _layout.tsx header) -->
+  <header id="topbar">
+    <button class="topbar-trigger" title="Toggle sidebar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <span id="breadcrumb" style="font-size:0.875rem;color:var(--muted-foreground);margin-left:0.25rem;">Time Tracking / Projects</span>
+  </header>
+
+  <!-- Wireframe banner — visible on every screen -->
+  <div id="wf-banner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    Wireframe &mdash; visual prototype only, not the live application &mdash; TRRND-12 / feature/TRRND-12-time-tracking
+  </div>
+
+  <div id="page-content">
+    <div class="page-inner">
+
+      <!-- ═══════════════════════════════════════════════════════════════
+           SCREEN 1 — PROJECTS (has-data / empty-state toggle)
+           ═══════════════════════════════════════════════════════════════ -->
+      <div id="screen-projects" class="screen active">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Projects</h1>
+            <p class="page-subtitle">Manage your time-tracking projects</p>
+          </div>
+          <!-- Right side: view toggle + create button -->
+          <div style="display:flex;align-items:center;gap:0.75rem;">
+            <!-- Card / Table view toggle -->
+            <div class="view-toggle" title="Switch view">
+              <button class="view-btn active" id="vbtn-cards" onclick="setProjectView('cards')" title="Card view">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+              </button>
+              <button class="view-btn" id="vbtn-table" onclick="setProjectView('table')" title="Table view">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+              </button>
+            </div>
+            <button class="btn btn-default" onclick="openModal('modal-create-project')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Create project
+            </button>
+          </div>
+        </div>
+
+        <!-- Toggle empty / populated for review -->
+        <div style="margin-bottom:1rem;display:flex;gap:0.5rem;align-items:center;">
+          <span class="text-xs text-muted">Preview state:</span>
+          <div class="tabs-list" style="margin-bottom:0;">
+            <button class="tab-trigger active" id="tab-has-data" onclick="toggleProjectState('data')">With projects</button>
+            <button class="tab-trigger"         id="tab-empty"    onclick="toggleProjectState('empty')">Empty state</button>
+          </div>
+        </div>
+
+        <!-- Populated state -->
+        <div id="projects-data">
+          <div class="projects-grid">
+
+            <div class="card project-card" onclick="showScreen('time-entry')">
+              <div class="project-card-body">
+                <div class="flex items-center gap-2 mb-4" style="margin-bottom:0.5rem;">
+                  <div class="project-card-name">Website Redesign</div>
+                  <span class="badge badge-teal">Active</span>
+                </div>
+                <p class="project-card-desc">Full redesign of the marketing site, including new visual identity and CMS integration.</p>
+              </div>
+              <div class="project-card-meta">
+                <span>12 entries</span>
+                <span class="project-card-hours">48.5 h</span>
+              </div>
+            </div>
+
+            <div class="card project-card" onclick="showScreen('time-entry')">
+              <div class="project-card-body">
+                <div class="flex items-center gap-2" style="margin-bottom:0.5rem;">
+                  <div class="project-card-name">API Integration</div>
+                  <span class="badge badge-amber">On hold</span>
+                </div>
+                <p class="project-card-desc">Third-party payment gateway integration and webhook handling.</p>
+              </div>
+              <div class="project-card-meta">
+                <span>7 entries</span>
+                <span class="project-card-hours">21.0 h</span>
+              </div>
+            </div>
+
+            <div class="card project-card" onclick="showScreen('time-entry')">
+              <div class="project-card-body">
+                <div class="flex items-center gap-2" style="margin-bottom:0.5rem;">
+                  <div class="project-card-name">Mobile App</div>
+                  <span class="badge badge-teal">Active</span>
+                </div>
+                <p class="project-card-desc">React Native companion app for field team.</p>
+              </div>
+              <div class="project-card-meta">
+                <span>5 entries</span>
+                <span class="project-card-hours">19.25 h</span>
+              </div>
+            </div>
+
+            <div class="card project-card" onclick="showScreen('time-entry')">
+              <div class="project-card-body">
+                <div class="flex items-center gap-2" style="margin-bottom:0.5rem;">
+                  <div class="project-card-name">Internal Tooling</div>
+                  <span class="badge badge-slate">Archived</span>
+                </div>
+                <p class="project-card-desc">Admin dashboard and reporting utilities.</p>
+              </div>
+              <div class="project-card-meta">
+                <span>24 entries</span>
+                <span class="project-card-hours">112.0 h</span>
+              </div>
+            </div>
+
+          </div>
+          <p class="annotation" style="margin-top:1rem;" id="cards-annotation">Click a project card to navigate to the Log Time form pre-selected to that project.</p>
+        </div>
+
+        <!-- Projects TABLE view — hidden by default, same data as card grid -->
+        <!-- Mirrors table.tsx: bg-muted/50 thead, h-11 px-4 text-xs uppercase th, px-4 py-3 td, hover:bg-muted/50 rows -->
+        <div id="projects-table-view" style="display:none;">
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Project name</th>
+                  <th>Status</th>
+                  <th>Description</th>
+                  <th>Entries</th>
+                  <th>Total hours</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-weight:600;">Website Redesign</td>
+                  <td><span class="badge badge-teal">Active</span></td>
+                  <td style="color:var(--muted-foreground);max-width:20rem;overflow:hidden;text-overflow:ellipsis;">Full redesign of the marketing site, including new visual identity and CMS integration.</td>
+                  <td>12</td>
+                  <td style="font-weight:600;color:var(--primary);">48.5 h</td>
+                  <td>
+                    <button class="row-action-btn" onclick="showScreen('time-entry')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                      Log time
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">API Integration</td>
+                  <td><span class="badge badge-amber">On hold</span></td>
+                  <td style="color:var(--muted-foreground);max-width:20rem;overflow:hidden;text-overflow:ellipsis;">Third-party payment gateway integration and webhook handling.</td>
+                  <td>7</td>
+                  <td style="font-weight:600;color:var(--primary);">21.0 h</td>
+                  <td>
+                    <button class="row-action-btn" onclick="showScreen('time-entry')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                      Log time
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Mobile App</td>
+                  <td><span class="badge badge-teal">Active</span></td>
+                  <td style="color:var(--muted-foreground);max-width:20rem;overflow:hidden;text-overflow:ellipsis;">React Native companion app for field team.</td>
+                  <td>5</td>
+                  <td style="font-weight:600;color:var(--primary);">19.25 h</td>
+                  <td>
+                    <button class="row-action-btn" onclick="showScreen('time-entry')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                      Log time
+                    </button>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Internal Tooling</td>
+                  <td><span class="badge badge-slate">Archived</span></td>
+                  <td style="color:var(--muted-foreground);max-width:20rem;overflow:hidden;text-overflow:ellipsis;">Admin dashboard and reporting utilities.</td>
+                  <td>24</td>
+                  <td style="font-weight:600;color:var(--primary);">112.0 h</td>
+                  <td>
+                    <button class="row-action-btn" onclick="showScreen('time-entry')">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                      Log time
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="annotation" style="margin-top:0.75rem;">Click "Log time" on any row to open the time entry form for that project.</p>
+        </div>
+
+        <!-- Empty state — mirrors items.tsx empty-state pattern exactly -->
+        <div id="projects-empty" style="display:none;">
+          <div class="card">
+            <div class="empty-state">
+              <div class="empty-state-icon-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <h3>No projects yet</h3>
+              <p>Create your first project to start tracking time</p>
+              <button class="btn btn-default" onclick="openModal('modal-create-project')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Create project
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ═══════════════════════════════════════════════════════════════
+           SCREEN 2 — LOG TIME (time entry form)
+           ═══════════════════════════════════════════════════════════════ -->
+      <div id="screen-time-entry" class="screen">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Log Time</h1>
+            <p class="page-subtitle">Record hours worked against a project</p>
+          </div>
+          <button class="btn btn-outline" onclick="showScreen('hours-dashboard')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+            View report
+          </button>
+        </div>
+
+        <div style="max-width:42rem;">
+          <div class="card">
+            <div class="card-content">
+
+              <!-- Project -->
+              <div class="form-group mb-4" style="margin-bottom:1rem;">
+                <label for="te-project">Project <span style="color:var(--destructive)">*</span></label>
+                <select id="te-project" class="form-input">
+                  <option value="">Select a project…</option>
+                  <option value="1" selected>Website Redesign</option>
+                  <option value="2">API Integration</option>
+                  <option value="3">Mobile App</option>
+                  <option value="4">Internal Tooling</option>
+                </select>
+              </div>
+
+              <div class="form-grid-2" style="margin-bottom:1rem;">
+                <!-- Date -->
+                <div class="form-group">
+                  <label for="te-date">Date <span style="color:var(--destructive)">*</span></label>
+                  <input id="te-date" type="date" class="form-input" value="2026-06-29" />
+                </div>
+
+                <!-- Hours -->
+                <div class="form-group">
+                  <label for="te-hours">Hours <span style="color:var(--destructive)">*</span></label>
+                  <input id="te-hours" type="number" class="form-input" placeholder="e.g. 2.5" min="0.25" max="24" step="0.25" value="3.0" />
+                  <span class="annotation">Quarter-hour increments (0.25)</span>
+                </div>
+              </div>
+
+              <!-- Description -->
+              <div class="form-group" style="margin-bottom:1rem;">
+                <label for="te-desc">Description</label>
+                <textarea id="te-desc" class="form-input" placeholder="What did you work on?">Implemented responsive navigation component and updated colour tokens to match design system.</textarea>
+              </div>
+
+              <hr class="form-divider" />
+
+              <!-- Billable flag -->
+              <div class="form-group" style="margin-bottom:1.25rem;">
+                <label>Billing</label>
+                <label class="checkbox-row" for="te-billable">
+                  <input type="checkbox" id="te-billable" checked />
+                  <div>
+                    <div class="checkbox-label">Billable</div>
+                    <div class="checkbox-hint">Mark this entry as billable to the client</div>
+                  </div>
+                </label>
+              </div>
+
+              <!-- Actions -->
+              <div style="display:flex;gap:0.75rem;justify-content:flex-end;">
+                <button class="btn btn-outline" onclick="showScreen('projects')">Cancel</button>
+                <button class="btn btn-default" onclick="handleSaveEntry()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                  Save entry
+                </button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Recent entries for this project -->
+          <div style="margin-top:1.5rem;">
+            <div class="flex items-center justify-between mb-4" style="margin-bottom:0.75rem;">
+              <div style="font-size:0.9375rem;font-weight:600;">Recent entries — Website Redesign</div>
+              <button class="btn btn-ghost btn-sm" onclick="showScreen('hours-dashboard')">View all</button>
+            </div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Hours</th>
+                    <th>Description</th>
+                    <th>Billable</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Jun 28, 2026</td>
+                    <td><strong>4.0 h</strong></td>
+                    <td style="max-width:16rem;overflow:hidden;text-overflow:ellipsis;">Wireframe review and design token refinement</td>
+                    <td><span class="badge badge-teal">Yes</span></td>
+                    <td><button class="btn btn-ghost btn-sm" style="padding:0 0.5rem;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+                    </button></td>
+                  </tr>
+                  <tr>
+                    <td>Jun 27, 2026</td>
+                    <td><strong>6.5 h</strong></td>
+                    <td style="max-width:16rem;overflow:hidden;text-overflow:ellipsis;">Homepage layout, hero section and CMS schema</td>
+                    <td><span class="badge badge-teal">Yes</span></td>
+                    <td><button class="btn btn-ghost btn-sm" style="padding:0 0.5rem;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+                    </button></td>
+                  </tr>
+                  <tr>
+                    <td>Jun 25, 2026</td>
+                    <td><strong>2.0 h</strong></td>
+                    <td style="max-width:16rem;overflow:hidden;text-overflow:ellipsis;">Sprint planning and stakeholder call</td>
+                    <td><span class="badge badge-slate">No</span></td>
+                    <td><button class="btn btn-ghost btn-sm" style="padding:0 0.5rem;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+                    </button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- ═══════════════════════════════════════════════════════════════
+           SCREEN 3 — HOURS DASHBOARD
+           ═══════════════════════════════════════════════════════════════ -->
+      <div id="screen-hours-dashboard" class="screen">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Hours Report</h1>
+            <p class="page-subtitle">Summary of logged hours — June 2026</p>
+          </div>
+          <button class="btn btn-default" onclick="showScreen('time-entry')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Log time
+          </button>
+        </div>
+
+        <!-- Period tabs -->
+        <div class="tabs-list">
+          <button class="tab-trigger active">This month</button>
+          <button class="tab-trigger">Last month</button>
+          <button class="tab-trigger">This quarter</button>
+          <button class="tab-trigger">Custom</button>
+        </div>
+
+        <!-- Stat cards strip -->
+        <div class="stats-strip">
+          <div class="card stat-card">
+            <div class="stat-label">Total hours</div>
+            <div class="stat-value">200.75</div>
+            <div class="stat-sub">Across all projects</div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Billable hours</div>
+            <div class="stat-value" style="color:var(--primary);">169.5</div>
+            <div class="stat-sub">84% of total</div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" style="width:84%;"></div>
+            </div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Non-billable</div>
+            <div class="stat-value" style="color:var(--muted-foreground);">31.25</div>
+            <div class="stat-sub">16% of total</div>
+            <div class="progress-bar-track">
+              <div class="progress-bar-fill" style="width:16%;background:#94a3b8;"></div>
+            </div>
+          </div>
+          <div class="card stat-card">
+            <div class="stat-label">Active projects</div>
+            <div class="stat-value">3</div>
+            <div class="stat-sub">4 projects total</div>
+          </div>
+        </div>
+
+        <!-- Bottom row: per-project breakdown + full entry log -->
+        <div style="display:grid;grid-template-columns:1fr 2fr;gap:1.5rem;">
+
+          <!-- Per-project breakdown -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">By project</div>
+              <div class="card-description">Hours distribution for June 2026</div>
+            </div>
+            <div class="card-content">
+
+              <div class="project-row">
+                <span class="dot dot-teal"></span>
+                <span class="project-row-name">Website Redesign</span>
+                <div class="project-row-bar">
+                  <div class="progress-bar-track" style="margin-top:0;">
+                    <div class="progress-bar-fill" style="width:72%;"></div>
+                  </div>
+                </div>
+                <span class="project-row-hours">144.5 h</span>
+              </div>
+
+              <div class="project-row">
+                <span class="dot dot-amber"></span>
+                <span class="project-row-name">API Integration</span>
+                <div class="project-row-bar">
+                  <div class="progress-bar-track" style="margin-top:0;">
+                    <div class="progress-bar-fill" style="width:17%;background:var(--chart-5);"></div>
+                  </div>
+                </div>
+                <span class="project-row-hours">34.0 h</span>
+              </div>
+
+              <div class="project-row">
+                <span class="dot dot-blue"></span>
+                <span class="project-row-name">Mobile App</span>
+                <div class="project-row-bar">
+                  <div class="progress-bar-track" style="margin-top:0;">
+                    <div class="progress-bar-fill" style="width:11%;background:#60a5fa;"></div>
+                  </div>
+                </div>
+                <span class="project-row-hours">22.25 h</span>
+              </div>
+
+              <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;font-size:0.875rem;">
+                <span class="text-muted">Total</span>
+                <span style="font-weight:700;">200.75 h</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Full entry log table -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">All entries</div>
+              <div class="card-description">Chronological log — most recent first</div>
+            </div>
+            <div class="card-content" style="padding-top:0.75rem;">
+              <div class="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Project</th>
+                      <th>Hours</th>
+                      <th>Description</th>
+                      <th>Billable</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>Jun 29, 2026</td>
+                      <td><span class="badge badge-teal">Website Redesign</span></td>
+                      <td><strong>3.0 h</strong></td>
+                      <td style="max-width:14rem;overflow:hidden;text-overflow:ellipsis;color:var(--muted-foreground);">Responsive nav component &amp; colour tokens</td>
+                      <td><span class="badge badge-teal">Yes</span></td>
+                    </tr>
+                    <tr>
+                      <td>Jun 28, 2026</td>
+                      <td><span class="badge badge-teal">Website Redesign</span></td>
+                      <td><strong>4.0 h</strong></td>
+                      <td style="max-width:14rem;overflow:hidden;text-overflow:ellipsis;color:var(--muted-foreground);">Wireframe review and design token refinement</td>
+                      <td><span class="badge badge-teal">Yes</span></td>
+                    </tr>
+                    <tr>
+                      <td>Jun 28, 2026</td>
+                      <td><span class="badge badge-amber">API Integration</span></td>
+                      <td><strong>2.5 h</strong></td>
+                      <td style="max-width:14rem;overflow:hidden;text-overflow:ellipsis;color:var(--muted-foreground);">Webhook endpoint implementation</td>
+                      <td><span class="badge badge-teal">Yes</span></td>
+                    </tr>
+                    <tr>
+                      <td>Jun 27, 2026</td>
+                      <td><span class="badge badge-teal">Website Redesign</span></td>
+                      <td><strong>6.5 h</strong></td>
+                      <td style="max-width:14rem;overflow:hidden;text-overflow:ellipsis;color:var(--muted-foreground);">Homepage layout, hero and CMS schema</td>
+                      <td><span class="badge badge-teal">Yes</span></td>
+                    </tr>
+                    <tr>
+                      <td>Jun 27, 2026</td>
+                      <td><span class="badge" style="background:#dbeafe;color:#1e40af;">Mobile App</span></td>
+                      <td><strong>5.0 h</strong></td>
+                      <td style="max-width:14rem;overflow:hidden;text-overflow:ellipsis;color:var(--muted-foreground);">Navigation stack &amp; auth flow</td>
+                      <td><span class="badge badge-teal">Yes</span></td>
+                    </tr>
+                    <tr>
+                      <td>Jun 25, 2026</td>
+                      <td><span class="badge badge-teal">Website Redesign</span></td>
+                      <td><strong>2.0 h</strong></td>
+                      <td style="max-width:14rem;overflow:hidden;text-overflow:ellipsis;color:var(--muted-foreground);">Sprint planning and stakeholder call</td>
+                      <td><span class="badge badge-slate">No</span></td>
+                    </tr>
+                    <tr>
+                      <td>Jun 24, 2026</td>
+                      <td><span class="badge badge-amber">API Integration</span></td>
+                      <td><strong>3.5 h</strong></td>
+                      <td style="max-width:14rem;overflow:hidden;text-overflow:ellipsis;color:var(--muted-foreground);">Payment gateway OAuth2 setup</td>
+                      <td><span class="badge badge-teal">Yes</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="annotation" style="margin-top:0.75rem;">Showing 7 of 63 entries. Pagination not shown in this prototype.</p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Placeholder for the main dashboard if navigated there -->
+      <div id="screen-dashboard-main" class="screen">
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-subtitle">Overview (existing screen — placeholder)</p>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-content">
+            <p class="text-muted text-sm">The existing Dashboard screen lives here. Navigate to <strong>Time Tracking</strong> in the left sidebar to see the new screens.</p>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.page-inner -->
+  </div><!-- /#page-content -->
+
+  <footer id="app-footer">
+    TRRND-12 wireframe &mdash; feature/TRRND-12-time-tracking &mdash; prototype only, not production code
+  </footer>
+</div><!-- /#main -->
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     MODAL — Create project (mirrors dialog.tsx)
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="modal-create-project" onclick="handleOverlayClick(event,'modal-create-project')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('modal-create-project')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+    <div class="modal-title">Create project</div>
+    <div class="modal-description">Add a new project to track time against.</div>
+
+    <div style="display:flex;flex-direction:column;gap:1rem;">
+      <div class="form-group">
+        <label for="cp-name">Project name <span style="color:var(--destructive)">*</span></label>
+        <input id="cp-name" type="text" class="form-input" placeholder="e.g. Website Redesign" />
+      </div>
+      <div class="form-group">
+        <label for="cp-desc">Description <span class="text-muted text-xs">(optional)</span></label>
+        <textarea id="cp-desc" class="form-input" placeholder="Brief description of this project…" style="min-height:4rem;"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modal-create-project')">Cancel</button>
+      <button class="btn btn-default" onclick="handleCreateProject()">Create project</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     TOAST (success notification — mirrors sonner.tsx shape)
+     ═══════════════════════════════════════════════════════════════════════ -->
+<div id="toast" style="
+  position:fixed;bottom:1.5rem;right:1.5rem;z-index:100;
+  background:#18181b;color:#fafafa;
+  padding:0.75rem 1.125rem;border-radius:var(--radius);
+  font-size:0.875rem;box-shadow:0 4px 12px rgba(0,0,0,0.25);
+  display:none;align-items:center;gap:0.625rem;
+  max-width:22rem;
+">
+  <svg viewBox="0 0 24 24" fill="none" stroke="#4ade80" stroke-width="2.5" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+  <span id="toast-msg"></span>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════
+     INLINE SCRIPT — navigation, modals, toast
+     ═══════════════════════════════════════════════════════════════════════ -->
+<script>
+  // Map screen id to nav button id and breadcrumb label
+  const SCREENS = {
+    'projects':          { nav: 'nav-projects',         crumb: 'Time Tracking / Projects' },
+    'time-entry':        { nav: 'nav-time-entry',        crumb: 'Time Tracking / Log Time' },
+    'hours-dashboard':   { nav: 'nav-hours-dashboard',   crumb: 'Time Tracking / Hours Report' },
+    'dashboard-main':    { nav: null,                    crumb: 'Dashboard' },
+  };
+
+  function showScreen(name) {
+    // Hide all screens
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    // Show requested
+    document.getElementById('screen-' + name).classList.add('active');
+
+    // Update sidebar active state
+    document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+    const cfg = SCREENS[name];
+    if (cfg && cfg.nav) {
+      document.getElementById(cfg.nav).classList.add('active');
+    }
+
+    // Breadcrumb
+    if (cfg) document.getElementById('breadcrumb').textContent = cfg.crumb;
+  }
+
+  // ── Modals ──────────────────────────────────────────────────────────────
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+  function handleOverlayClick(e, id) {
+    if (e.target === document.getElementById(id)) closeModal(id);
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.overlay.open').forEach(o => o.classList.remove('open'));
+    }
+  });
+
+  // ── Toast ────────────────────────────────────────────────────────────────
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = msg;
+    t.style.display = 'flex';
+    setTimeout(() => { t.style.display = 'none'; }, 3000);
+  }
+
+  // ── Projects: current view state ────────────────────────────────────────
+  let _projectsDataState = 'data';   // 'data' | 'empty'
+  let _projectsViewMode  = 'cards';  // 'cards' | 'table'
+
+  // ── Projects state toggle (with projects / empty) ────────────────────────
+  function toggleProjectState(state) {
+    _projectsDataState = state;
+    const dataEl   = document.getElementById('projects-data');
+    const emptyEl  = document.getElementById('projects-empty');
+    const tabData  = document.getElementById('tab-has-data');
+    const tabEmpty = document.getElementById('tab-empty');
+    if (state === 'data') {
+      dataEl.style.display  = 'block';
+      emptyEl.style.display = 'none';
+      tabData.classList.add('active');
+      tabEmpty.classList.remove('active');
+      // re-apply current view mode inside the data panel
+      applyViewMode(_projectsViewMode);
+    } else {
+      dataEl.style.display  = 'none';
+      emptyEl.style.display = 'block';
+      tabEmpty.classList.add('active');
+      tabData.classList.remove('active');
+    }
+  }
+
+  // ── Projects view toggle (cards / table) ─────────────────────────────────
+  function setProjectView(mode) {
+    _projectsViewMode = mode;
+    // Update icon button active state
+    document.getElementById('vbtn-cards').classList.toggle('active', mode === 'cards');
+    document.getElementById('vbtn-table').classList.toggle('active', mode === 'table');
+    // Only apply if we are in the 'data' state (not empty)
+    if (_projectsDataState === 'data') {
+      applyViewMode(mode);
+    }
+  }
+
+  function applyViewMode(mode) {
+    const grid      = document.querySelector('.projects-grid');
+    const annotation = document.getElementById('cards-annotation');
+    const tableView = document.getElementById('projects-table-view');
+    if (mode === 'cards') {
+      grid.style.display      = 'grid';
+      annotation.style.display = 'block';
+      tableView.style.display  = 'none';
+    } else {
+      grid.style.display      = 'none';
+      annotation.style.display = 'none';
+      tableView.style.display  = 'block';
+    }
+  }
+
+  // ── Create project handler (prototype — no real API) ──────────────────────
+  function handleCreateProject() {
+    const name = document.getElementById('cp-name').value.trim();
+    if (!name) {
+      document.getElementById('cp-name').focus();
+      return;
+    }
+    closeModal('modal-create-project');
+    document.getElementById('cp-name').value = '';
+    document.getElementById('cp-desc').value = '';
+    showToast('Project "' + name + '" created successfully');
+  }
+
+  // ── Save entry handler (prototype — no real API) ──────────────────────────
+  function handleSaveEntry() {
+    const hours   = document.getElementById('te-hours').value;
+    const project = document.getElementById('te-project');
+    const label   = project.options[project.selectedIndex].text;
+    if (!hours || parseFloat(hours) <= 0) {
+      document.getElementById('te-hours').focus();
+      return;
+    }
+    showToast(hours + ' h logged against ' + label);
+  }
+
+  // ── Initial active state ─────────────────────────────────────────────────
+  showScreen('projects');
+</script>
+
+</body>
+</html>
