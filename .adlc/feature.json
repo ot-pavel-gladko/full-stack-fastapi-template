@@ -24,7 +24,7 @@
   ],
   "artifacts": {
     "wireframe": "wireframes/TRRND-23.html",
-    "brief": null,
+    "brief": ".adlc/brief.md",
     "pr": null
   },
   "reviews": [
