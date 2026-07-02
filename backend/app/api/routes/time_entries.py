@@ -1,4 +1,7 @@
+import calendar
 import uuid
+from datetime import date, timedelta
+from decimal import Decimal
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -6,8 +9,13 @@ from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
+    DaySummary,
+    HoursSummary,
     Message,
     Project,
+    ProjectStatus,
+    ProjectSummary,
+    SummaryPeriod,
     TimeEntriesPublic,
     TimeEntry,
     TimeEntryCreate,
@@ -16,6 +24,119 @@ from app.models import (
 )
 
 router = APIRouter(prefix="/time-entries", tags=["time-entries"])
+
+
+def _period_range(period: SummaryPeriod, today: date) -> tuple[date, date]:
+    """Return the (start, end) inclusive date range for the given period."""
+    if period == SummaryPeriod.week:
+        start = today - timedelta(days=today.weekday())
+        end = start + timedelta(days=6)
+    elif period == SummaryPeriod.month:
+        start = today.replace(day=1)
+        last_day = calendar.monthrange(today.year, today.month)[1]
+        end = today.replace(day=last_day)
+    else:  # quarter
+        quarter_index = (today.month - 1) // 3
+        start_month = quarter_index * 3 + 1
+        end_month = start_month + 2
+        start = date(today.year, start_month, 1)
+        last_day = calendar.monthrange(today.year, end_month)[1]
+        end = date(today.year, end_month, last_day)
+    return start, end
+
+
+@router.get("/summary", response_model=HoursSummary)
+def read_time_entries_summary(
+    session: SessionDep,
+    current_user: CurrentUser,
+    period: SummaryPeriod = SummaryPeriod.week,
+) -> Any:
+    """
+    Aggregate hours for the Hours Dashboard over the selected period.
+    """
+    start, end = _period_range(period, date.today())
+
+    entries_statement = select(TimeEntry).where(
+        TimeEntry.entry_date >= start, TimeEntry.entry_date <= end
+    )
+    projects_statement = select(Project)
+    if not current_user.is_superuser:
+        entries_statement = entries_statement.where(
+            TimeEntry.owner_id == current_user.id
+        )
+        projects_statement = projects_statement.where(
+            Project.owner_id == current_user.id
+        )
+
+    entries = session.exec(entries_statement).all()
+    projects = {project.id: project for project in session.exec(projects_statement).all()}
+
+    total_hours = sum((entry.hours for entry in entries), Decimal("0"))
+    billable_hours = sum(
+        (entry.hours for entry in entries if entry.is_billable), Decimal("0")
+    )
+    non_billable_hours = total_hours - billable_hours
+
+    active_project_count = sum(
+        1 for project in projects.values() if project.status == ProjectStatus.active
+    )
+    total_project_count = len(projects)
+
+    by_day_map: dict[date, dict[str, Decimal]] = {}
+    by_project_map: dict[uuid.UUID, dict[str, Any]] = {}
+
+    for entry in entries:
+        day_bucket = by_day_map.setdefault(
+            entry.entry_date, {"total": Decimal("0"), "billable": Decimal("0")}
+        )
+        day_bucket["total"] += entry.hours
+        if entry.is_billable:
+            day_bucket["billable"] += entry.hours
+
+        project = projects.get(entry.project_id)
+        project_name = project.name if project else "Unknown project"
+        project_bucket = by_project_map.setdefault(
+            entry.project_id,
+            {"name": project_name, "total": Decimal("0"), "billable": Decimal("0")},
+        )
+        project_bucket["total"] += entry.hours
+        if entry.is_billable:
+            project_bucket["billable"] += entry.hours
+
+    by_day = [
+        DaySummary(
+            entry_date=day,
+            total_hours=values["total"],
+            billable_hours=values["billable"],
+        )
+        for day, values in sorted(by_day_map.items())
+    ]
+
+    by_project = [
+        ProjectSummary(
+            project_id=project_id,
+            project_name=values["name"],
+            total_hours=values["total"],
+            billable_hours=values["billable"],
+            percent_billable=(
+                float(values["billable"] / values["total"] * 100)
+                if values["total"] > 0
+                else 0.0
+            ),
+        )
+        for project_id, values in by_project_map.items()
+    ]
+
+    return HoursSummary(
+        period=period,
+        total_hours=total_hours,
+        billable_hours=billable_hours,
+        non_billable_hours=non_billable_hours,
+        active_project_count=active_project_count,
+        total_project_count=total_project_count,
+        by_day=by_day,
+        by_project=by_project,
+    )
 
 
 @router.get("/", response_model=TimeEntriesPublic)

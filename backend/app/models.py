@@ -226,6 +226,38 @@ class TimeEntriesPublic(SQLModel):
     count: int
 
 
+# Hours summary aggregation (Hours Dashboard)
+class SummaryPeriod(str, enum.Enum):
+    week = "week"
+    month = "month"
+    quarter = "quarter"
+
+
+class DaySummary(SQLModel):
+    entry_date: date
+    total_hours: Decimal
+    billable_hours: Decimal
+
+
+class ProjectSummary(SQLModel):
+    project_id: uuid.UUID
+    project_name: str
+    total_hours: Decimal
+    billable_hours: Decimal
+    percent_billable: float
+
+
+class HoursSummary(SQLModel):
+    period: SummaryPeriod
+    total_hours: Decimal
+    billable_hours: Decimal
+    non_billable_hours: Decimal
+    active_project_count: int
+    total_project_count: int
+    by_day: list[DaySummary]
+    by_project: list[ProjectSummary]
+
+
 # Generic message
 class Message(SQLModel):
     message: str
