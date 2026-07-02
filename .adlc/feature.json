@@ -6,9 +6,12 @@
   "feature_slug": "time-tracking",
   "base_branch": "master",
   "branch": "feature/TRRND-23-time-tracking",
-  "current_step": 0,
-  "timeline": { "0": "2026-07-02T12:45:22Z" },
+  "current_step": 2,
+  "timeline": { "0": "2026-07-02T12:45:22Z", "2": "2026-07-02T13:08:11Z" },
   "stories": [],
-  "artifacts": { "wireframe": null, "brief": null, "pr": null },
-  "reviews": []
+  "artifacts": { "wireframe": "wireframes/TRRND-23.html", "brief": null, "pr": null },
+  "reviews": [
+    { "step": 2, "round": 1, "verdict": "rejected", "comments": "add Projects card view + cards/table switch" },
+    { "step": 2, "round": 2, "verdict": "approved", "comments": "" }
+  ]
 }

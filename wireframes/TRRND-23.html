@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TRRND-23 — Time Tracking — Wireframe</title>
+<style>
+  /* ---------------------------------------------------------------------
+     Design tokens copied from frontend/src/index.css (oklch color system,
+     shadcn/ui "new-york" style, --radius = 0.625rem). Modern browsers
+     render oklch() natively, so colors match the real app exactly.
+  --------------------------------------------------------------------- */
+  :root{
+    --radius: 0.625rem;
+    --radius-sm: calc(var(--radius) - 4px);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-lg: var(--radius);
+    --radius-xl: calc(var(--radius) + 4px);
+
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.145 0 0);
+    --card: oklch(1 0 0);
+    --card-foreground: oklch(0.145 0 0);
+    --popover: oklch(1 0 0);
+    --popover-foreground: oklch(0.145 0 0);
+    --primary: oklch(0.5982 0.10687 182.4689);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.97 0 0);
+    --secondary-foreground: oklch(0.205 0 0);
+    --muted: oklch(0.97 0 0);
+    --muted-foreground: oklch(0.556 0 0);
+    --accent: oklch(0.97 0 0);
+    --accent-foreground: oklch(0.205 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --border: oklch(0.922 0 0);
+    --input: oklch(0.922 0 0);
+    --ring: oklch(0.708 0 0);
+    --sidebar: oklch(0.985 0 0);
+    --sidebar-foreground: oklch(0.145 0 0);
+    --sidebar-primary: oklch(0.5982 0.10687 182.4689);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.97 0 0);
+    --sidebar-accent-foreground: oklch(0.205 0 0);
+    --sidebar-border: oklch(0.922 0 0);
+    --green-soft: oklch(0.87 0.09 152);
+    --green-fg: oklch(0.35 0.09 152);
+    --amber-soft: oklch(0.9 0.09 85);
+    --amber-fg: oklch(0.4 0.1 60);
+  }
+  .dark{
+    --background: oklch(0.145 0 0);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.205 0 0);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.205 0 0);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.65 0.10687 182.4689);
+    --primary-foreground: oklch(0.985 0 0);
+    --secondary: oklch(0.269 0 0);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.269 0 0);
+    --muted-foreground: oklch(0.708 0 0);
+    --accent: oklch(0.269 0 0);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.704 0.191 22.216);
+    --border: oklch(1 0 0 / 10%);
+    --input: oklch(1 0 0 / 15%);
+    --ring: oklch(0.556 0 0);
+    --sidebar: oklch(0.205 0 0);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.65 0.10687 182.4689);
+    --sidebar-accent: oklch(0.269 0 0);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(1 0 0 / 10%);
+  }
+
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; padding:0; }
+  body{
+    background:var(--background);
+    color:var(--foreground);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size:14px;
+    line-height:1.5;
+  }
+  button{ cursor:pointer; font-family:inherit; }
+  a{ text-decoration:none; color:inherit; }
+
+  /* ---------------- Wireframe-only banner ---------------- */
+  .wf-banner{
+    position:sticky; top:0; z-index:100;
+    background: oklch(0.9 0.09 85);
+    color: oklch(0.32 0.09 55);
+    padding:8px 16px;
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    font-size:12.5px; font-weight:600; letter-spacing:.02em;
+    border-bottom:1px solid oklch(0.8 0.1 70);
+  }
+  .wf-banner svg{ width:14px; height:14px; flex:0 0 auto; }
+
+  /* ---------------- App shell ---------------- */
+  .app-shell{ display:flex; min-height:calc(100vh - 37px); }
+
+  /* Sidebar - mirrors components/ui/sidebar.tsx + Sidebar/AppSidebar.tsx */
+  .sidebar{
+    width:16rem;
+    flex:0 0 auto;
+    background:var(--sidebar);
+    color:var(--sidebar-foreground);
+    border-right:1px solid var(--sidebar-border);
+    display:flex; flex-direction:column;
+    transition:width .15s ease;
+  }
+  .sidebar.collapsed{ width:3rem; }
+  .sidebar.collapsed .label,
+  .sidebar.collapsed .group-label,
+  .sidebar.collapsed .user-info,
+  .sidebar.collapsed .logo-text,
+  .sidebar.collapsed .appearance-label{ display:none; }
+  .sidebar.collapsed .nav-item{ justify-content:center; }
+  .sidebar.collapsed .sidebar-header{ justify-content:center; padding:0; }
+  .sidebar.collapsed .user-row{ justify-content:center; }
+
+  .sidebar-header{
+    padding:20px 16px 16px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .logo-mark{
+    width:22px; height:22px; border-radius:6px;
+    background:var(--sidebar-primary); color:var(--sidebar-primary-foreground);
+    display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:12px; flex:0 0 auto;
+  }
+  .logo-text{ font-weight:700; font-size:14px; white-space:nowrap; }
+
+  .sidebar-content{ flex:1 1 auto; overflow-y:auto; padding:4px 8px; }
+  .nav-group{ margin-bottom:14px; }
+  .group-label{
+    font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.05em;
+    color:var(--muted-foreground); padding:6px 10px 4px;
+  }
+  .nav-item{
+    display:flex; align-items:center; gap:10px;
+    padding:7px 10px; border-radius:var(--radius-md);
+    font-size:13.5px; font-weight:500;
+    color:var(--sidebar-foreground);
+    margin:1px 0;
+    white-space:nowrap; overflow:hidden;
+  }
+  .nav-item svg{ width:16px; height:16px; flex:0 0 auto; opacity:.85; }
+  .nav-item:hover{ background:var(--sidebar-accent); }
+  .nav-item.active{
+    background:var(--sidebar-accent); color:var(--sidebar-accent-foreground);
+    font-weight:600;
+  }
+  .nav-item.disabled{ opacity:.55; cursor:default; }
+  .nav-item.disabled:hover{ background:transparent; }
+
+  .sidebar-footer{
+    border-top:1px solid var(--sidebar-border);
+    padding:10px 8px; display:flex; flex-direction:column; gap:6px;
+  }
+  .appearance-row{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:4px 8px; gap:8px;
+  }
+  .appearance-label{ font-size:12px; color:var(--muted-foreground); }
+  .theme-toggle{
+    display:flex; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden;
+  }
+  .theme-toggle button{
+    border:none; background:transparent; padding:4px 8px; display:flex; align-items:center;
+    color:var(--muted-foreground);
+  }
+  .theme-toggle button.active{ background:var(--primary); color:var(--primary-foreground); }
+  .theme-toggle svg{ width:13px; height:13px; }
+
+  .user-row{
+    display:flex; align-items:center; gap:8px; padding:6px 8px;
+    border-radius:var(--radius-md);
+  }
+  .user-row:hover{ background:var(--sidebar-accent); }
+  .avatar{
+    width:28px; height:28px; border-radius:50%; flex:0 0 auto;
+    background:oklch(0.45 0 0); color:#fff;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; font-weight:600;
+  }
+  .user-info{ min-width:0; flex:1 1 auto; }
+  .user-info .name{ font-size:12.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .user-info .email{ font-size:11px; color:var(--muted-foreground); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .user-row svg.chev{ width:14px; height:14px; color:var(--muted-foreground); flex:0 0 auto; }
+
+  /* Main area */
+  .main-inset{ flex:1 1 auto; min-width:0; display:flex; flex-direction:column; }
+  .top-header{
+    position:sticky; top:37px; z-index:20;
+    height:56px; flex:0 0 auto;
+    display:flex; align-items:center; gap:10px;
+    padding:0 16px;
+    border-bottom:1px solid var(--border);
+    background:var(--background);
+  }
+  .icon-btn{
+    border:none; background:transparent; color:var(--muted-foreground);
+    width:30px; height:30px; border-radius:var(--radius-md);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .icon-btn:hover{ background:var(--accent); color:var(--accent-foreground); }
+  .icon-btn svg{ width:17px; height:17px; }
+  .header-title{ font-size:13px; color:var(--muted-foreground); font-weight:500; }
+  .header-title b{ color:var(--foreground); font-weight:600; }
+
+  .content-area{ flex:1 1 auto; padding:24px 32px; }
+  .content-max{ max-width:80rem; margin:0 auto; }
+
+  .footer-bar{
+    padding:14px 32px; text-align:center; font-size:12px; color:var(--muted-foreground);
+    border-top:1px solid var(--border);
+  }
+
+  .screen{ display:none; flex-direction:column; gap:24px; }
+  .screen.active{ display:flex; }
+
+  /* ---------------- Typography helpers ---------------- */
+  h1.page-title{ font-size:22px; font-weight:700; letter-spacing:-0.01em; margin:0; }
+  p.page-desc{ color:var(--muted-foreground); margin:2px 0 0; font-size:13.5px; }
+  .page-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+
+  /* ---------------- Buttons (mirrors ui/button.tsx) ---------------- */
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    height:36px; padding:0 16px; border-radius:var(--radius-md);
+    font-size:13.5px; font-weight:500; border:1px solid transparent;
+    background:var(--primary); color:var(--primary-foreground);
+    white-space:nowrap;
+  }
+  .btn:hover{ background:oklch(0.5982 0.10687 182.4689 / 0.9); }
+  .btn svg{ width:15px; height:15px; }
+  .btn.outline{ background:var(--background); color:var(--foreground); border-color:var(--border); }
+  .btn.outline:hover{ background:var(--accent); }
+  .btn.secondary{ background:var(--secondary); color:var(--secondary-foreground); }
+  .btn.ghost{ background:transparent; color:var(--foreground); }
+  .btn.ghost:hover{ background:var(--accent); }
+  .btn.sm{ height:32px; padding:0 12px; font-size:13px; }
+  .btn:disabled{ opacity:.5; }
+
+  /* ---------------- Cards ---------------- */
+  .card{
+    background:var(--card); color:var(--card-foreground);
+    border:1px solid var(--border); border-radius:var(--radius-xl);
+    box-shadow:0 1px 2px 0 rgb(0 0 0 / 0.04);
+    padding:20px;
+  }
+  .card-title{ font-size:14px; font-weight:600; margin:0; }
+  .card-desc{ font-size:12.5px; color:var(--muted-foreground); margin:2px 0 0; }
+  .metric-card .metric-value{ font-size:26px; font-weight:700; margin-top:10px; }
+  .metric-card .metric-sub{ font-size:12px; color:var(--muted-foreground); margin-top:2px; }
+
+  /* ---------------- Form controls ---------------- */
+  label.field-label{ font-size:13px; font-weight:500; display:block; margin-bottom:6px; }
+  label.field-label .req{ color:var(--destructive); }
+  .field{ margin-bottom:14px; }
+  .input, select.input, textarea.input{
+    width:100%; height:36px; border:1px solid var(--input); border-radius:var(--radius-md);
+    background:var(--background); padding:0 12px; font-size:13.5px; color:var(--foreground);
+    outline:none;
+  }
+  .input:focus, select.input:focus, textarea.input:focus{ border-color:var(--ring); box-shadow:0 0 0 3px oklch(0.708 0 0 / 0.25); }
+  textarea.input{ height:auto; min-height:72px; padding:8px 12px; resize:vertical; font-family:inherit; }
+  .checkbox-row{ display:flex; align-items:center; gap:8px; }
+  .checkbox{
+    width:16px; height:16px; border:1px solid var(--input); border-radius:4px;
+    display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto;
+    background:var(--background);
+  }
+  .checkbox.checked{ background:var(--primary); border-color:var(--primary); }
+  .checkbox svg{ width:12px; height:12px; color:var(--primary-foreground); display:none; }
+  .checkbox.checked svg{ display:block; }
+  .checkbox-row label{ font-size:13px; }
+
+  /* ---------------- Badges ---------------- */
+  .badge{
+    display:inline-flex; align-items:center; border-radius:999px; padding:2px 9px;
+    font-size:11px; font-weight:500; border:1px solid transparent; white-space:nowrap;
+  }
+  .badge.default{ background:var(--primary); color:var(--primary-foreground); }
+  .badge.secondary{ background:var(--secondary); color:var(--secondary-foreground); }
+  .badge.outline{ background:transparent; color:var(--foreground); border-color:var(--border); }
+  .badge.green{ background:var(--green-soft); color:var(--green-fg); }
+  .badge.amber{ background:var(--amber-soft); color:var(--amber-fg); }
+
+  /* ---------------- Table (mirrors ui/table.tsx + DataTable) ---------------- */
+  table.data-table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  table.data-table thead th{
+    text-align:left; padding:9px 12px; font-weight:500; color:var(--muted-foreground);
+    border-bottom:1px solid var(--border); font-size:12.5px;
+  }
+  table.data-table tbody td{ padding:11px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  table.data-table tbody tr:hover{ background:var(--muted); }
+  table.data-table tbody tr:last-child td{ border-bottom:none; }
+  .table-wrap{ border:1px solid var(--border); border-radius:var(--radius-xl); overflow:hidden; background:var(--card); }
+  .table-toolbar{ display:flex; align-items:center; justify-content:flex-end; gap:8px; padding:10px 12px; border-top:1px solid var(--border); font-size:12px; color:var(--muted-foreground); }
+
+  .muted{ color:var(--muted-foreground); }
+  .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:12px; }
+
+  /* ---------------- Empty state ---------------- */
+  .empty-state{
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:56px 20px; gap:6px;
+  }
+  .empty-icon{
+    width:56px; height:56px; border-radius:50%; background:var(--muted);
+    display:flex; align-items:center; justify-content:center; margin-bottom:8px;
+  }
+  .empty-icon svg{ width:24px; height:24px; color:var(--muted-foreground); }
+  .empty-state h3{ font-size:15px; font-weight:600; margin:0; }
+  .empty-state p{ margin:0; color:var(--muted-foreground); font-size:13px; }
+
+  /* ---------------- Dialog / Modal (mirrors ui/dialog.tsx) ---------------- */
+  .overlay{
+    position:fixed; inset:0; background:rgb(0 0 0 / .5); z-index:200;
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .overlay.open{ display:flex; }
+  .dialog{
+    background:var(--popover); color:var(--popover-foreground);
+    border-radius:var(--radius-xl); border:1px solid var(--border);
+    width:100%; max-width:440px; padding:22px; position:relative;
+    box-shadow:0 10px 40px rgb(0 0 0 / .18);
+  }
+  .dialog-close{
+    position:absolute; top:14px; right:14px; border:none; background:transparent;
+    color:var(--muted-foreground); width:22px; height:22px; border-radius:4px;
+  }
+  .dialog-close:hover{ background:var(--accent); }
+  .dialog-close svg{ width:14px; height:14px; }
+  .dialog h2{ font-size:16px; font-weight:600; margin:0 0 4px; }
+  .dialog .dialog-desc{ font-size:12.5px; color:var(--muted-foreground); margin:0 0 16px; }
+  .dialog-footer{ display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+
+  /* ---------------- Wireframe annotation callouts ---------------- */
+  .note{
+    display:flex; gap:8px; align-items:flex-start;
+    background:oklch(0.97 0.02 250); border:1px dashed oklch(0.75 0.08 250);
+    border-radius:var(--radius-md); padding:10px 12px; font-size:12.5px; color:oklch(0.35 0.06 250);
+  }
+  .note svg{ width:15px; height:15px; flex:0 0 auto; margin-top:1px; }
+  .note b{ font-weight:600; }
+
+  /* ---------------- Screen-specific layout helpers ---------------- */
+  .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .grid-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+  .logtime-grid{ display:grid; grid-template-columns:340px 1fr; gap:20px; align-items:start; }
+  @media (max-width: 900px){
+    .grid-4{ grid-template-columns:repeat(2,1fr); }
+    .logtime-grid{ grid-template-columns:1fr; }
+  }
+
+  .toggle-pill-group{ display:inline-flex; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; }
+  .toggle-pill{ border:none; background:var(--background); padding:6px 14px; font-size:12.5px; font-weight:500; color:var(--muted-foreground); }
+  .toggle-pill.active{ background:var(--primary); color:var(--primary-foreground); }
+
+  /* ---------------- View switch (card/list grid toggle) ---------------- */
+  .view-switch{ display:inline-flex; border:1px solid var(--border); border-radius:var(--radius-md); overflow:hidden; flex:0 0 auto; }
+  .view-switch button{
+    border:none; background:var(--background); color:var(--muted-foreground);
+    width:34px; height:34px; display:flex; align-items:center; justify-content:center;
+  }
+  .view-switch button + button{ border-left:1px solid var(--border); }
+  .view-switch button svg{ width:16px; height:16px; }
+  .view-switch button:hover{ background:var(--accent); }
+  .view-switch button.active{ background:var(--primary); color:var(--primary-foreground); }
+  .view-switch button.active:hover{ background:var(--primary); }
+
+  /* ---------------- Project cards (card view) ---------------- */
+  .project-card-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+  @media (max-width: 1100px){ .project-card-grid{ grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width: 700px){ .project-card-grid{ grid-template-columns:1fr; } }
+  .project-card{ display:flex; flex-direction:column; gap:10px; }
+  .project-card .pc-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:8px; }
+  .project-card .pc-name{ font-size:14.5px; font-weight:600; margin:0; }
+  .project-card .pc-client{ font-size:12.5px; color:var(--muted-foreground); margin:2px 0 0; }
+  .project-card .pc-badges{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .project-card .pc-hours{ display:flex; align-items:baseline; justify-content:space-between; margin-top:2px; padding-top:10px; border-top:1px solid var(--border); }
+  .project-card .pc-hours .pc-hours-label{ font-size:12px; color:var(--muted-foreground); }
+  .project-card .pc-hours .pc-hours-value{ font-size:18px; font-weight:700; }
+
+  .bar-chart{ display:flex; align-items:flex-end; gap:10px; height:150px; padding:10px 4px 0; }
+  .bar-col{ flex:1 1 auto; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  .bar{ width:100%; max-width:34px; border-radius:6px 6px 2px 2px; background:var(--primary); position:relative; }
+  .bar.billable-split{ background:linear-gradient(to top, var(--primary) 0%, var(--primary) var(--split), var(--secondary) var(--split), var(--secondary) 100%); }
+  .bar-col .bar-label{ font-size:11px; color:var(--muted-foreground); }
+  .bar-col .bar-val{ font-size:11px; font-weight:600; }
+
+  .progress-track{ height:6px; background:var(--secondary); border-radius:999px; overflow:hidden; width:100%; }
+  .progress-fill{ height:100%; background:var(--primary); border-radius:999px; }
+
+  /* Toast */
+  .toast{
+    position:fixed; bottom:20px; right:20px; z-index:300;
+    background:var(--popover); color:var(--popover-foreground); border:1px solid var(--border);
+    border-radius:var(--radius-lg); padding:12px 16px; box-shadow:0 8px 24px rgb(0 0 0 / .15);
+    display:flex; align-items:center; gap:10px; font-size:13px; font-weight:500;
+    opacity:0; transform:translateY(8px); transition:all .2s ease; pointer-events:none;
+  }
+  .toast.show{ opacity:1; transform:translateY(0); }
+  .toast svg{ width:16px; height:16px; color:var(--green-fg); flex:0 0 auto; }
+
+  .flex-between{ display:flex; align-items:center; justify-content:space-between; }
+  .gap-8{ gap:8px; }
+  .row-actions{ display:flex; justify-content:flex-end; gap:4px; }
+</style>
+</head>
+<body>
+
+<!-- ==================== Wireframe banner ==================== -->
+<div class="wf-banner">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/></svg>
+  Wireframe — visual prototype only. Not connected to any backend. Built for review of TRRND-23 (Time Tracking).
+</div>
+
+<div class="app-shell">
+
+  <!-- ==================== Sidebar (mirrors AppSidebar / Main / User) ==================== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo-mark">F</div>
+      <span class="logo-text">FastAPI Project</span>
+    </div>
+
+    <nav class="sidebar-content">
+      <div class="nav-group">
+        <a href="#" class="nav-item disabled" title="Not part of this wireframe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1Z"/></svg>
+          <span class="label">Dashboard</span>
+        </a>
+        <a href="#" class="nav-item disabled" title="Not part of this wireframe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span class="label">Items</span>
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <div class="group-label">Time Tracking</div>
+        <a href="#" class="nav-item" data-screen="projects" onclick="showScreen('projects');return false;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 4v0M16 4v0"/></svg>
+          <span class="label">Projects</span>
+        </a>
+        <a href="#" class="nav-item" data-screen="logtime" onclick="showScreen('logtime');return false;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          <span class="label">Log Time</span>
+        </a>
+        <a href="#" class="nav-item" data-screen="dashboard" onclick="showScreen('dashboard');return false;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M18 8v9M13 13v4M8 11v6"/></svg>
+          <span class="label">Hours Dashboard</span>
+        </a>
+      </div>
+
+      <div class="nav-group">
+        <a href="#" class="nav-item disabled" title="Superuser-only, not part of this wireframe">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span class="label">Admin</span>
+        </a>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="appearance-row">
+        <span class="appearance-label">Appearance</span>
+        <div class="theme-toggle">
+          <button class="active" id="theme-light" onclick="setTheme('light')" title="Light">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          </button>
+          <button id="theme-dark" onclick="setTheme('dark')" title="Dark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="user-row" title="Static preview — not functional">
+        <div class="avatar">JD</div>
+        <div class="user-info">
+          <div class="name">Jane Doe</div>
+          <div class="email">jane.doe@example.com</div>
+        </div>
+        <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==================== Main content ==================== -->
+  <div class="main-inset">
+    <header class="top-header">
+      <button class="icon-btn" onclick="toggleSidebar()" title="Toggle sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+      </button>
+      <span class="header-title">Time Tracking / <b id="header-current">Projects</b></span>
+    </header>
+
+    <main class="content-area">
+      <div class="content-max">
+
+        <!-- ============================================================
+             SCREEN 1 — Projects
+        ============================================================= -->
+        <section class="screen active" id="screen-projects">
+          <div class="page-head">
+            <div>
+              <h1 class="page-title">Projects</h1>
+              <p class="page-desc">Create and manage the projects your team logs time against.</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:10px;">
+              <div class="view-switch" role="tablist" aria-label="Projects view">
+                <button class="active" id="proj-mode-card" onclick="setProjectsViewMode('card')" title="Card view">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                </button>
+                <button id="proj-mode-table" onclick="setProjectsViewMode('table')" title="Table view">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+                </button>
+              </div>
+              <button class="btn" onclick="openDialog('dialog-new-project')">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                New Project
+              </button>
+            </div>
+          </div>
+
+          <div class="flex-between">
+            <div class="toggle-pill-group" role="tablist" aria-label="Preview state">
+              <button class="toggle-pill active" id="proj-view-list" onclick="setProjectsView('list')">Populated view</button>
+              <button class="toggle-pill" id="proj-view-empty" onclick="setProjectsView('empty')">Empty state</button>
+            </div>
+            <span class="muted" style="font-size:12px;">Toggle for review purposes — real screen shows whichever state applies</span>
+          </div>
+
+          <!-- Populated — card view (default) -->
+          <div id="projects-card-list">
+            <div class="project-card-grid">
+              <div class="card project-card">
+                <div class="pc-head">
+                  <div>
+                    <p class="pc-name">Website Redesign</p>
+                    <p class="pc-client">Acme Corp</p>
+                  </div>
+                  <button class="icon-btn" title="More actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                </div>
+                <div class="pc-badges">
+                  <span class="badge green">Billable</span>
+                  <span class="badge secondary">Active</span>
+                </div>
+                <div class="pc-hours">
+                  <span class="pc-hours-label">Hours this month</span>
+                  <span class="pc-hours-value">42.5 h</span>
+                </div>
+              </div>
+              <div class="card project-card">
+                <div class="pc-head">
+                  <div>
+                    <p class="pc-name">Internal Tooling</p>
+                    <p class="pc-client muted">No client</p>
+                  </div>
+                  <button class="icon-btn" title="More actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                </div>
+                <div class="pc-badges">
+                  <span class="badge amber">Non-billable</span>
+                  <span class="badge secondary">Active</span>
+                </div>
+                <div class="pc-hours">
+                  <span class="pc-hours-label">Hours this month</span>
+                  <span class="pc-hours-value">11.0 h</span>
+                </div>
+              </div>
+              <div class="card project-card">
+                <div class="pc-head">
+                  <div>
+                    <p class="pc-name">Mobile App v2</p>
+                    <p class="pc-client">Northwind Traders</p>
+                  </div>
+                  <button class="icon-btn" title="More actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                </div>
+                <div class="pc-badges">
+                  <span class="badge green">Billable</span>
+                  <span class="badge secondary">Active</span>
+                </div>
+                <div class="pc-hours">
+                  <span class="pc-hours-label">Hours this month</span>
+                  <span class="pc-hours-value">96.25 h</span>
+                </div>
+              </div>
+              <div class="card project-card">
+                <div class="pc-head">
+                  <div>
+                    <p class="pc-name">Legacy Migration</p>
+                    <p class="pc-client">Acme Corp</p>
+                  </div>
+                  <button class="icon-btn" title="More actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                </div>
+                <div class="pc-badges">
+                  <span class="badge green">Billable</span>
+                  <span class="badge outline">Archived</span>
+                </div>
+                <div class="pc-hours">
+                  <span class="pc-hours-label">Hours this month</span>
+                  <span class="pc-hours-value">18.0 h</span>
+                </div>
+              </div>
+            </div>
+            <div class="muted" style="font-size:12px; margin-top:12px; text-align:right;">4 of 4 projects</div>
+          </div>
+
+          <!-- Populated — table view -->
+          <div id="projects-table-list" style="display:none;">
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Project</th>
+                    <th>Client</th>
+                    <th>Default billable</th>
+                    <th>Status</th>
+                    <th>Hours logged (this month)</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><span style="font-weight:600;">Website Redesign</span><div class="muted" style="font-size:12px;">Public marketing site refresh</div></td>
+                    <td>Acme Corp</td>
+                    <td><span class="badge green">Billable</span></td>
+                    <td><span class="badge secondary">Active</span></td>
+                    <td>42.5 h</td>
+                    <td><div class="row-actions"><button class="icon-btn" title="More actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button></div></td>
+                  </tr>
+                  <tr>
+                    <td><span style="font-weight:600;">Internal Tooling</span><div class="muted" style="font-size:12px;">Dashboards for ops team</div></td>
+                    <td class="muted">—</td>
+                    <td><span class="badge amber">Non-billable</span></td>
+                    <td><span class="badge secondary">Active</span></td>
+                    <td>11.0 h</td>
+                    <td><div class="row-actions"><button class="icon-btn" title="More actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button></div></td>
+                  </tr>
+                  <tr>
+                    <td><span style="font-weight:600;">Mobile App v2</span><div class="muted" style="font-size:12px;">iOS/Android client rebuild</div></td>
+                    <td>Northwind Traders</td>
+                    <td><span class="badge green">Billable</span></td>
+                    <td><span class="badge secondary">Active</span></td>
+                    <td>96.25 h</td>
+                    <td><div class="row-actions"><button class="icon-btn" title="More actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button></div></td>
+                  </tr>
+                  <tr>
+                    <td><span style="font-weight:600;">Legacy Migration</span><div class="muted" style="font-size:12px;">Move billing service off v1 API</div></td>
+                    <td>Acme Corp</td>
+                    <td><span class="badge green">Billable</span></td>
+                    <td><span class="badge outline">Archived</span></td>
+                    <td>18.0 h</td>
+                    <td><div class="row-actions"><button class="icon-btn" title="More actions"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button></div></td>
+                  </tr>
+                </tbody>
+              </table>
+              <div class="table-toolbar">4 of 4 projects</div>
+            </div>
+          </div>
+
+          <!-- Empty state — card view -->
+          <div id="projects-card-empty" style="display:none;">
+            <div class="card">
+              <div class="empty-state">
+                <div class="empty-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>
+                </div>
+                <h3>You don't have any projects yet</h3>
+                <p>Create a project to start logging time against it</p>
+                <button class="btn" style="margin-top:14px;" onclick="openDialog('dialog-new-project')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                  New Project
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty state — table view -->
+          <div id="projects-table-empty" style="display:none;">
+            <div class="table-wrap">
+              <div class="empty-state">
+                <div class="empty-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>
+                </div>
+                <h3>You don't have any projects yet</h3>
+                <p>Create a project to start logging time against it</p>
+                <button class="btn" style="margin-top:14px;" onclick="openDialog('dialog-new-project')">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+                  New Project
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <span><b>Assumption:</b> a project has a "default billable" flag that pre-fills (but does not lock) the billable checkbox when logging time against it. Archived projects stay visible for reporting but are hidden from the "Project" select on the Log Time screen. Flag for PO confirmation.</span>
+          </div>
+          <div class="note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <span><b>Per PO feedback:</b> card view is now the default; the grid/list icons in the header toggle between card and table view. The view preference is not persisted anywhere in this prototype (would default per-user or per-session in the real app — flag for confirmation).</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SCREEN 2 — Log Time
+        ============================================================= -->
+        <section class="screen" id="screen-logtime">
+          <div class="page-head">
+            <div>
+              <h1 class="page-title">Log Time</h1>
+              <p class="page-desc">Record hours you've worked against a project.</p>
+            </div>
+          </div>
+
+          <div class="logtime-grid">
+            <!-- Entry form -->
+            <div class="card">
+              <h2 class="card-title">New time entry</h2>
+              <p class="card-desc">All fields except description are required.</p>
+
+              <div style="margin-top:16px;">
+                <div class="field">
+                  <label class="field-label">Project <span class="req">*</span></label>
+                  <select class="input" id="lt-project" onchange="onProjectSelect()">
+                    <option value="">Select a project…</option>
+                    <option data-billable="true">Website Redesign — Acme Corp</option>
+                    <option data-billable="false">Internal Tooling</option>
+                    <option data-billable="true">Mobile App v2 — Northwind Traders</option>
+                  </select>
+                </div>
+                <div class="grid-2">
+                  <div class="field">
+                    <label class="field-label">Date <span class="req">*</span></label>
+                    <input class="input" type="date" id="lt-date" value="2026-07-02" />
+                  </div>
+                  <div class="field">
+                    <label class="field-label">Hours <span class="req">*</span></label>
+                    <input class="input" type="number" id="lt-hours" placeholder="e.g. 3.5" min="0" step="0.25" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label class="field-label">Description</label>
+                  <textarea class="input" id="lt-desc" placeholder="What did you work on?"></textarea>
+                </div>
+                <div class="field checkbox-row">
+                  <span class="checkbox" id="lt-billable" onclick="toggleCheckbox(this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+                  </span>
+                  <label for="lt-billable" onclick="toggleCheckbox(document.getElementById('lt-billable'))">Billable</label>
+                </div>
+
+                <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:6px;">
+                  <button class="btn outline" onclick="resetLogTimeForm()">Cancel</button>
+                  <button class="btn" onclick="submitTimeEntry()">Save entry</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent entries -->
+            <div class="card">
+              <h2 class="card-title">Recent entries</h2>
+              <p class="card-desc">Your last logged hours, most recent first.</p>
+              <div class="table-wrap" style="margin-top:14px; border:1px solid var(--border);">
+                <table class="data-table" id="recent-entries-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Project</th>
+                      <th>Hours</th>
+                      <th>Description</th>
+                      <th>Billable</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-entries-body">
+                    <tr>
+                      <td>Jul 1, 2026</td>
+                      <td>Mobile App v2</td>
+                      <td>4.00</td>
+                      <td class="muted">Sprint planning + API review</td>
+                      <td><span class="badge green">Yes</span></td>
+                      <td><div class="row-actions"><button class="icon-btn" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div></td>
+                    </tr>
+                    <tr>
+                      <td>Jul 1, 2026</td>
+                      <td>Website Redesign</td>
+                      <td>2.50</td>
+                      <td class="muted">Homepage layout revisions</td>
+                      <td><span class="badge green">Yes</span></td>
+                      <td><div class="row-actions"><button class="icon-btn" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div></td>
+                    </tr>
+                    <tr>
+                      <td>Jun 30, 2026</td>
+                      <td>Internal Tooling</td>
+                      <td>1.00</td>
+                      <td class="muted">Fix broken CI dashboard chart</td>
+                      <td><span class="badge outline">No</span></td>
+                      <td><div class="row-actions"><button class="icon-btn" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div></td>
+                    </tr>
+                    <tr>
+                      <td>Jun 30, 2026</td>
+                      <td>Mobile App v2</td>
+                      <td>6.00</td>
+                      <td class="muted">Onboarding flow implementation</td>
+                      <td><span class="badge green">Yes</span></td>
+                      <td><div class="row-actions"><button class="icon-btn" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+                <div class="table-toolbar">Showing latest 4 entries</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <span><b>Assumption:</b> one entry = one project/date/hours row (no clock-in/out, matches "no timer/stopwatch" scope). Editing an entry reuses this same form in a dialog, not built out here — flag if a separate Edit dialog is expected.</span>
+          </div>
+        </section>
+
+        <!-- ============================================================
+             SCREEN 3 — Hours Dashboard
+        ============================================================= -->
+        <section class="screen" id="screen-dashboard">
+          <div class="page-head">
+            <div>
+              <h1 class="page-title">Hours Dashboard</h1>
+              <p class="page-desc">Summary of hours worked across all projects.</p>
+            </div>
+            <div class="toggle-pill-group" role="tablist" aria-label="Period">
+              <button class="toggle-pill active" onclick="setPeriod(this,'week')">This week</button>
+              <button class="toggle-pill" onclick="setPeriod(this,'month')">This month</button>
+              <button class="toggle-pill" onclick="setPeriod(this,'quarter')">This quarter</button>
+            </div>
+          </div>
+
+          <div class="grid-4">
+            <div class="card metric-card">
+              <p class="card-desc">Total hours</p>
+              <div class="metric-value" id="metric-total">37.75 h</div>
+              <div class="metric-sub" id="metric-total-sub">vs 34.0 h last week</div>
+            </div>
+            <div class="card metric-card">
+              <p class="card-desc">Billable hours</p>
+              <div class="metric-value" id="metric-billable">29.25 h</div>
+              <div class="metric-sub" id="metric-billable-sub">77% of total</div>
+            </div>
+            <div class="card metric-card">
+              <p class="card-desc">Non-billable hours</p>
+              <div class="metric-value" id="metric-nonbillable">8.50 h</div>
+              <div class="metric-sub" id="metric-nonbillable-sub">23% of total</div>
+            </div>
+            <div class="card metric-card">
+              <p class="card-desc">Active projects</p>
+              <div class="metric-value" id="metric-projects">3</div>
+              <div class="metric-sub">out of 4 total</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="flex-between">
+              <div>
+                <h2 class="card-title">Hours by day</h2>
+                <p class="card-desc">Teal = billable, gray = non-billable</p>
+              </div>
+            </div>
+            <div class="bar-chart" id="bar-chart">
+              <div class="bar-col"><div class="bar billable-split" style="height:70%; --split:80%;"></div><span class="bar-val">6.0h</span><span class="bar-label">Mon</span></div>
+              <div class="bar-col"><div class="bar billable-split" style="height:90%; --split:70%;"></div><span class="bar-val">7.5h</span><span class="bar-label">Tue</span></div>
+              <div class="bar-col"><div class="bar billable-split" style="height:60%; --split:100%;"></div><span class="bar-val">5.0h</span><span class="bar-label">Wed</span></div>
+              <div class="bar-col"><div class="bar billable-split" style="height:100%; --split:65%;"></div><span class="bar-val">8.25h</span><span class="bar-label">Thu</span></div>
+              <div class="bar-col"><div class="bar billable-split" style="height:85%; --split:75%;"></div><span class="bar-val">7.0h</span><span class="bar-label">Fri</span></div>
+              <div class="bar-col"><div class="bar billable-split" style="height:12%; --split:0%;"></div><span class="bar-val">1.0h</span><span class="bar-label">Sat</span></div>
+              <div class="bar-col"><div class="bar billable-split" style="height:24%; --split:0%;"></div><span class="bar-val">3.0h</span><span class="bar-label">Sun</span></div>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Project</th>
+                  <th>Total hours</th>
+                  <th>Billable</th>
+                  <th>% billable</th>
+                  <th style="width:220px;">Share of period</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-weight:600;">Mobile App v2</td>
+                  <td>18.25 h</td>
+                  <td>18.25 h</td>
+                  <td>100%</td>
+                  <td><div class="progress-track"><div class="progress-fill" style="width:48%;"></div></div></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Website Redesign</td>
+                  <td>12.50 h</td>
+                  <td>11.00 h</td>
+                  <td>88%</td>
+                  <td><div class="progress-track"><div class="progress-fill" style="width:33%;"></div></div></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:600;">Internal Tooling</td>
+                  <td>7.00 h</td>
+                  <td>0.00 h</td>
+                  <td>0%</td>
+                  <td><div class="progress-track"><div class="progress-fill" style="width:19%; background:var(--muted-foreground);"></div></div></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="table-toolbar">3 projects with logged time this period</div>
+          </div>
+
+          <div class="note">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <span><b>Assumption:</b> period defaults to the current week (Mon–Sun) and switching period recomputes the same widgets — no drill-down/detail page beyond this summary, per "keep it simple" scope. Numbers on this screen are static placeholders for review, not live data.</span>
+          </div>
+        </section>
+
+      </div>
+    </main>
+
+    <footer class="footer-bar">Full Stack FastAPI Project — Time Tracking (wireframe) · © 2026</footer>
+  </div>
+</div>
+
+<!-- ==================== Dialog: New Project ==================== -->
+<div class="overlay" id="dialog-new-project" onclick="if(event.target===this) closeDialog('dialog-new-project')">
+  <div class="dialog">
+    <button class="dialog-close" onclick="closeDialog('dialog-new-project')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <h2>New Project</h2>
+    <p class="dialog-desc">Fill in the details to add a new project.</p>
+
+    <div class="field">
+      <label class="field-label">Project name <span class="req">*</span></label>
+      <input class="input" type="text" placeholder="e.g. Website Redesign" />
+    </div>
+    <div class="field">
+      <label class="field-label">Client</label>
+      <input class="input" type="text" placeholder="Optional" />
+    </div>
+    <div class="field">
+      <label class="field-label">Description</label>
+      <textarea class="input" placeholder="Optional"></textarea>
+    </div>
+    <div class="field checkbox-row">
+      <span class="checkbox checked" id="np-billable" onclick="toggleCheckbox(this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>
+      </span>
+      <label onclick="toggleCheckbox(document.getElementById('np-billable'))">Billable by default</label>
+    </div>
+
+    <div class="dialog-footer">
+      <button class="btn outline" onclick="closeDialog('dialog-new-project')">Cancel</button>
+      <button class="btn" onclick="createProjectDemo()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+  <span id="toast-text">Time entry logged</span>
+</div>
+
+<script>
+  // ---------------- Screen navigation ----------------
+  function showScreen(name){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item[data-screen]').forEach(a => a.classList.remove('active'));
+    document.querySelector('.nav-item[data-screen="' + name + '"]').classList.add('active');
+    const titles = { projects: 'Projects', logtime: 'Log Time', dashboard: 'Hours Dashboard' };
+    document.getElementById('header-current').textContent = titles[name];
+  }
+
+  // ---------------- Sidebar collapse ----------------
+  function toggleSidebar(){
+    document.getElementById('sidebar').classList.toggle('collapsed');
+  }
+
+  // ---------------- Theme toggle (cosmetic, mirrors ThemeProvider) ----------------
+  function setTheme(mode){
+    document.documentElement.classList.toggle('dark', mode === 'dark');
+    document.getElementById('theme-light').classList.toggle('active', mode === 'light');
+    document.getElementById('theme-dark').classList.toggle('active', mode === 'dark');
+  }
+
+  // ---------------- Generic checkbox ----------------
+  function toggleCheckbox(el){
+    el.classList.toggle('checked');
+  }
+
+  // ---------------- Dialog open/close ----------------
+  function openDialog(id){ document.getElementById(id).classList.add('open'); }
+  function closeDialog(id){ document.getElementById(id).classList.remove('open'); }
+  function createProjectDemo(){
+    closeDialog('dialog-new-project');
+    showToastMessage('Project created');
+  }
+
+  // ---------------- Projects screen: data state (list/empty) + view mode (card/table) ----------------
+  let projectsDataState = 'list';   // 'list' | 'empty'
+  let projectsViewMode = 'card';    // 'card' | 'table'
+
+  function setProjectsView(view){
+    projectsDataState = view;
+    document.getElementById('proj-view-list').classList.toggle('active', view === 'list');
+    document.getElementById('proj-view-empty').classList.toggle('active', view === 'empty');
+    renderProjectsScreen();
+  }
+
+  function setProjectsViewMode(mode){
+    projectsViewMode = mode;
+    document.getElementById('proj-mode-card').classList.toggle('active', mode === 'card');
+    document.getElementById('proj-mode-table').classList.toggle('active', mode === 'table');
+    renderProjectsScreen();
+  }
+
+  function renderProjectsScreen(){
+    const panels = {
+      'card-list': 'projects-card-list',
+      'table-list': 'projects-table-list',
+      'card-empty': 'projects-card-empty',
+      'table-empty': 'projects-table-empty',
+    };
+    const activeKey = projectsViewMode + '-' + projectsDataState;
+    Object.keys(panels).forEach(key => {
+      document.getElementById(panels[key]).style.display = (key === activeKey) ? '' : 'none';
+    });
+  }
+
+  // ---------------- Log Time screen ----------------
+  function onProjectSelect(){
+    const sel = document.getElementById('lt-project');
+    const opt = sel.options[sel.selectedIndex];
+    const billableBox = document.getElementById('lt-billable');
+    if (!opt || !opt.dataset.billable) return;
+    const shouldBeChecked = opt.dataset.billable === 'true';
+    billableBox.classList.toggle('checked', shouldBeChecked);
+  }
+
+  function resetLogTimeForm(){
+    document.getElementById('lt-project').selectedIndex = 0;
+    document.getElementById('lt-hours').value = '';
+    document.getElementById('lt-desc').value = '';
+    document.getElementById('lt-billable').classList.remove('checked');
+  }
+
+  function submitTimeEntry(){
+    const project = document.getElementById('lt-project');
+    const projectLabel = project.value || (project.options[project.selectedIndex] ? project.options[project.selectedIndex].text.split(' — ')[0] : '');
+    const date = document.getElementById('lt-date').value || '2026-07-02';
+    const hours = parseFloat(document.getElementById('lt-hours').value || '0').toFixed(2);
+    const desc = document.getElementById('lt-desc').value || '—';
+    const billable = document.getElementById('lt-billable').classList.contains('checked');
+
+    if (!project.value && project.selectedIndex === 0){
+      showToastMessage('Select a project first');
+      return;
+    }
+    if (!document.getElementById('lt-hours').value){
+      showToastMessage('Enter hours worked');
+      return;
+    }
+
+    const d = new Date(date);
+    const dateLabel = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    const row = document.createElement('tr');
+    row.innerHTML =
+      '<td>' + dateLabel + '</td>' +
+      '<td>' + projectLabel + '</td>' +
+      '<td>' + hours + '</td>' +
+      '<td class="muted">' + desc + '</td>' +
+      '<td>' + (billable ? '<span class="badge green">Yes</span>' : '<span class="badge outline">No</span>') + '</td>' +
+      '<td><div class="row-actions"><button class="icon-btn" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button></div></td>';
+
+    const body = document.getElementById('recent-entries-body');
+    body.insertBefore(row, body.firstChild);
+
+    resetLogTimeForm();
+    showToastMessage('Time entry logged');
+  }
+
+  // ---------------- Dashboard: period toggle (canned data) ----------------
+  const periodData = {
+    week:    { total: '37.75 h', billable: '29.25 h', nonbillable: '8.50 h', totalSub: 'vs 34.0 h last week', billableSub: '77% of total', nonbillableSub: '23% of total', projects: '3' },
+    month:   { total: '156.50 h', billable: '118.75 h', nonbillable: '37.75 h', totalSub: 'vs 148.0 h last month', billableSub: '76% of total', nonbillableSub: '24% of total', projects: '4' },
+    quarter: { total: '452.25 h', billable: '340.00 h', nonbillable: '112.25 h', totalSub: 'vs 410.5 h last quarter', billableSub: '75% of total', nonbillableSub: '25% of total', projects: '4' },
+  };
+  function setPeriod(btn, key){
+    document.querySelectorAll('#screen-dashboard .toggle-pill-group .toggle-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const d = periodData[key];
+    document.getElementById('metric-total').textContent = d.total;
+    document.getElementById('metric-billable').textContent = d.billable;
+    document.getElementById('metric-nonbillable').textContent = d.nonbillable;
+    document.getElementById('metric-total-sub').textContent = d.totalSub;
+    document.getElementById('metric-billable-sub').textContent = d.billableSub;
+    document.getElementById('metric-nonbillable-sub').textContent = d.nonbillableSub;
+    document.getElementById('metric-projects').textContent = d.projects;
+  }
+
+  // ---------------- Toast ----------------
+  let toastTimer = null;
+  function showToastMessage(msg){
+    const toast = document.getElementById('toast');
+    document.getElementById('toast-text').textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
+  }
+</script>
+</body>
+</html>
