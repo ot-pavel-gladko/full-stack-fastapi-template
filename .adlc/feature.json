@@ -6,12 +6,45 @@
   "feature_slug": "time-tracking",
   "base_branch": "master",
   "branch": "feature/TRRND-23-time-tracking",
-  "current_step": 2,
-  "timeline": { "0": "2026-07-02T12:45:22Z", "2": "2026-07-02T13:08:11Z" },
-  "stories": [],
-  "artifacts": { "wireframe": "wireframes/TRRND-23.html", "brief": null, "pr": null },
+  "current_step": 4,
+  "timeline": {
+    "0": "2026-07-02T12:45:22Z",
+    "2": "2026-07-02T13:08:11Z",
+    "4": "2026-07-02T13:36:01Z"
+  },
+  "stories": [
+    "TRRND-24",
+    "TRRND-25",
+    "TRRND-26",
+    "TRRND-27",
+    "TRRND-28",
+    "TRRND-29",
+    "TRRND-30",
+    "TRRND-31"
+  ],
+  "artifacts": {
+    "wireframe": "wireframes/TRRND-23.html",
+    "brief": null,
+    "pr": null
+  },
   "reviews": [
-    { "step": 2, "round": 1, "verdict": "rejected", "comments": "add Projects card view + cards/table switch" },
-    { "step": 2, "round": 2, "verdict": "approved", "comments": "" }
+    {
+      "step": 2,
+      "round": 1,
+      "verdict": "rejected",
+      "comments": "add Projects card view + cards/table switch"
+    },
+    {
+      "step": 2,
+      "round": 2,
+      "verdict": "approved",
+      "comments": ""
+    },
+    {
+      "step": 4,
+      "round": 1,
+      "verdict": "approved",
+      "comments": "requirements OK; PO confirmed default-billable pre-fill and non-persisted view mode"
+    }
   ]
 }
