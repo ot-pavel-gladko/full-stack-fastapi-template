@@ -10,6 +10,9 @@ from app.models import (
     Project,
     ProjectCreate,
     ProjectUpdate,
+    TimeEntry,
+    TimeEntryCreate,
+    TimeEntryUpdate,
     User,
     UserCreate,
     UserUpdate,
@@ -96,3 +99,26 @@ def update_project(
     session.commit()
     session.refresh(db_project)
     return db_project
+
+
+def create_time_entry(
+    *, session: Session, time_entry_in: TimeEntryCreate, owner_id: uuid.UUID
+) -> TimeEntry:
+    db_time_entry = TimeEntry.model_validate(
+        time_entry_in, update={"owner_id": owner_id}
+    )
+    session.add(db_time_entry)
+    session.commit()
+    session.refresh(db_time_entry)
+    return db_time_entry
+
+
+def update_time_entry(
+    *, session: Session, db_time_entry: TimeEntry, time_entry_in: TimeEntryUpdate
+) -> TimeEntry:
+    update_dict = time_entry_in.model_dump(exclude_unset=True)
+    db_time_entry.sqlmodel_update(update_dict)
+    session.add(db_time_entry)
+    session.commit()
+    session.refresh(db_time_entry)
+    return db_time_entry
