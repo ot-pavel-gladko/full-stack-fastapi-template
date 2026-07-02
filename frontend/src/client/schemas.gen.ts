@@ -57,6 +57,29 @@ export const Body_login_login_access_tokenSchema = {
     title: 'Body_login-login_access_token'
 } as const;
 
+export const DaySummarySchema = {
+    properties: {
+        entry_date: {
+            type: 'string',
+            format: 'date',
+            title: 'Entry Date'
+        },
+        total_hours: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Total Hours'
+        },
+        billable_hours: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Billable Hours'
+        }
+    },
+    type: 'object',
+    required: ['entry_date', 'total_hours', 'billable_hours'],
+    title: 'DaySummary'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -69,6 +92,54 @@ export const HTTPValidationErrorSchema = {
     },
     type: 'object',
     title: 'HTTPValidationError'
+} as const;
+
+export const HoursSummarySchema = {
+    properties: {
+        period: {
+            '$ref': '#/components/schemas/SummaryPeriod'
+        },
+        total_hours: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Total Hours'
+        },
+        billable_hours: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Billable Hours'
+        },
+        non_billable_hours: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Non Billable Hours'
+        },
+        active_project_count: {
+            type: 'integer',
+            title: 'Active Project Count'
+        },
+        total_project_count: {
+            type: 'integer',
+            title: 'Total Project Count'
+        },
+        by_day: {
+            items: {
+                '$ref': '#/components/schemas/DaySummary'
+            },
+            type: 'array',
+            title: 'By Day'
+        },
+        by_project: {
+            items: {
+                '$ref': '#/components/schemas/ProjectSummary'
+            },
+            type: 'array',
+            title: 'By Project'
+        }
+    },
+    type: 'object',
+    required: ['period', 'total_hours', 'billable_hours', 'non_billable_hours', 'active_project_count', 'total_project_count', 'by_day', 'by_project'],
+    title: 'HoursSummary'
 } as const;
 
 export const ItemCreateSchema = {
@@ -249,6 +320,432 @@ export const PrivateUserCreateSchema = {
     type: 'object',
     required: ['email', 'password', 'full_name'],
     title: 'PrivateUserCreate'
+} as const;
+
+export const ProjectCreateSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Name'
+        },
+        client: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Client'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_billable_default: {
+            type: 'boolean',
+            title: 'Is Billable Default',
+            default: true
+        }
+    },
+    type: 'object',
+    required: ['name'],
+    title: 'ProjectCreate'
+} as const;
+
+export const ProjectPublicSchema = {
+    properties: {
+        name: {
+            type: 'string',
+            maxLength: 255,
+            minLength: 1,
+            title: 'Name'
+        },
+        client: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Client'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_billable_default: {
+            type: 'boolean',
+            title: 'Is Billable Default',
+            default: true
+        },
+        status: {
+            '$ref': '#/components/schemas/ProjectStatus',
+            default: 'active'
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        owner_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Owner Id'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['name', 'id', 'owner_id'],
+    title: 'ProjectPublic'
+} as const;
+
+export const ProjectStatusSchema = {
+    type: 'string',
+    enum: ['active', 'archived'],
+    title: 'ProjectStatus'
+} as const;
+
+export const ProjectSummarySchema = {
+    properties: {
+        project_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Project Id'
+        },
+        project_name: {
+            type: 'string',
+            title: 'Project Name'
+        },
+        total_hours: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Total Hours'
+        },
+        billable_hours: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$',
+            title: 'Billable Hours'
+        },
+        percent_billable: {
+            type: 'number',
+            title: 'Percent Billable'
+        }
+    },
+    type: 'object',
+    required: ['project_id', 'project_name', 'total_hours', 'billable_hours', 'percent_billable'],
+    title: 'ProjectSummary'
+} as const;
+
+export const ProjectUpdateSchema = {
+    properties: {
+        name: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255,
+                    minLength: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Name'
+        },
+        client: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Client'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_billable_default: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Billable Default'
+        },
+        status: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/ProjectStatus'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    title: 'ProjectUpdate'
+} as const;
+
+export const ProjectsPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/ProjectPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'ProjectsPublic'
+} as const;
+
+export const SummaryPeriodSchema = {
+    type: 'string',
+    enum: ['week', 'month', 'quarter'],
+    title: 'SummaryPeriod'
+} as const;
+
+export const TimeEntriesPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/TimeEntryPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'TimeEntriesPublic'
+} as const;
+
+export const TimeEntryCreateSchema = {
+    properties: {
+        entry_date: {
+            type: 'string',
+            format: 'date',
+            title: 'Entry Date'
+        },
+        hours: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,3}|(?=[\\d.]{1,6}0*$)\\d{0,3}\\.\\d{0,2}0*$)'
+                }
+            ],
+            title: 'Hours'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_billable: {
+            type: 'boolean',
+            title: 'Is Billable',
+            default: true
+        },
+        project_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Project Id'
+        }
+    },
+    type: 'object',
+    required: ['entry_date', 'hours', 'project_id'],
+    title: 'TimeEntryCreate'
+} as const;
+
+export const TimeEntryPublicSchema = {
+    properties: {
+        entry_date: {
+            type: 'string',
+            format: 'date',
+            title: 'Entry Date'
+        },
+        hours: {
+            type: 'string',
+            pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,3}|(?=[\\d.]{1,6}0*$)\\d{0,3}\\.\\d{0,2}0*$)',
+            title: 'Hours'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_billable: {
+            type: 'boolean',
+            title: 'Is Billable',
+            default: true
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        project_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Project Id'
+        },
+        owner_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Owner Id'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['entry_date', 'hours', 'id', 'project_id', 'owner_id'],
+    title: 'TimeEntryPublic'
+} as const;
+
+export const TimeEntryUpdateSchema = {
+    properties: {
+        entry_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Entry Date'
+        },
+        hours: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'string',
+                    pattern: '^(?!^[-+.]*$)[+-]?0*(?:\\d{0,3}|(?=[\\d.]{1,6}0*$)\\d{0,3}\\.\\d{0,2}0*$)'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Hours'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        is_billable: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Is Billable'
+        }
+    },
+    type: 'object',
+    title: 'TimeEntryUpdate'
 } as const;
 
 export const TokenSchema = {

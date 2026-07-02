@@ -9,6 +9,23 @@ export type Body_login_login_access_token = {
     client_secret?: (string | null);
 };
 
+export type DaySummary = {
+    entry_date: string;
+    total_hours: string;
+    billable_hours: string;
+};
+
+export type HoursSummary = {
+    period: SummaryPeriod;
+    total_hours: string;
+    billable_hours: string;
+    non_billable_hours: string;
+    active_project_count: number;
+    total_project_count: number;
+    by_day: Array<DaySummary>;
+    by_project: Array<ProjectSummary>;
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -50,6 +67,80 @@ export type PrivateUserCreate = {
     password: string;
     full_name: string;
     is_verified?: boolean;
+};
+
+export type ProjectCreate = {
+    name: string;
+    client?: (string | null);
+    description?: (string | null);
+    is_billable_default?: boolean;
+};
+
+export type ProjectPublic = {
+    name: string;
+    client?: (string | null);
+    description?: (string | null);
+    is_billable_default?: boolean;
+    status?: ProjectStatus;
+    id: string;
+    owner_id: string;
+    created_at?: (string | null);
+};
+
+export type ProjectsPublic = {
+    data: Array<ProjectPublic>;
+    count: number;
+};
+
+export type ProjectStatus = 'active' | 'archived';
+
+export type ProjectSummary = {
+    project_id: string;
+    project_name: string;
+    total_hours: string;
+    billable_hours: string;
+    percent_billable: number;
+};
+
+export type ProjectUpdate = {
+    name?: (string | null);
+    client?: (string | null);
+    description?: (string | null);
+    is_billable_default?: (boolean | null);
+    status?: (ProjectStatus | null);
+};
+
+export type SummaryPeriod = 'week' | 'month' | 'quarter';
+
+export type TimeEntriesPublic = {
+    data: Array<TimeEntryPublic>;
+    count: number;
+};
+
+export type TimeEntryCreate = {
+    entry_date: string;
+    hours: (number | string);
+    description?: (string | null);
+    is_billable?: boolean;
+    project_id: string;
+};
+
+export type TimeEntryPublic = {
+    entry_date: string;
+    hours: string;
+    description?: (string | null);
+    is_billable?: boolean;
+    id: string;
+    project_id: string;
+    owner_id: string;
+    created_at?: (string | null);
+};
+
+export type TimeEntryUpdate = {
+    entry_date?: (string | null);
+    hours?: (number | string | null);
+    description?: (string | null);
+    is_billable?: (boolean | null);
 };
 
 export type Token = {
@@ -176,6 +267,76 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type ProjectsReadProjectsData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type ProjectsReadProjectsResponse = (ProjectsPublic);
+
+export type ProjectsCreateProjectData = {
+    requestBody: ProjectCreate;
+};
+
+export type ProjectsCreateProjectResponse = (ProjectPublic);
+
+export type ProjectsReadProjectData = {
+    id: string;
+};
+
+export type ProjectsReadProjectResponse = (ProjectPublic);
+
+export type ProjectsUpdateProjectData = {
+    id: string;
+    requestBody: ProjectUpdate;
+};
+
+export type ProjectsUpdateProjectResponse = (ProjectPublic);
+
+export type ProjectsDeleteProjectData = {
+    id: string;
+};
+
+export type ProjectsDeleteProjectResponse = (Message);
+
+export type TimeEntriesReadTimeEntriesSummaryData = {
+    period?: SummaryPeriod;
+};
+
+export type TimeEntriesReadTimeEntriesSummaryResponse = (HoursSummary);
+
+export type TimeEntriesReadTimeEntriesData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type TimeEntriesReadTimeEntriesResponse = (TimeEntriesPublic);
+
+export type TimeEntriesCreateTimeEntryData = {
+    requestBody: TimeEntryCreate;
+};
+
+export type TimeEntriesCreateTimeEntryResponse = (TimeEntryPublic);
+
+export type TimeEntriesReadTimeEntryData = {
+    id: string;
+};
+
+export type TimeEntriesReadTimeEntryResponse = (TimeEntryPublic);
+
+export type TimeEntriesUpdateTimeEntryData = {
+    id: string;
+    requestBody: TimeEntryUpdate;
+};
+
+export type TimeEntriesUpdateTimeEntryResponse = (TimeEntryPublic);
+
+export type TimeEntriesDeleteTimeEntryData = {
+    id: string;
+};
+
+export type TimeEntriesDeleteTimeEntryResponse = (Message);
 
 export type UsersReadUsersData = {
     limit?: number;
