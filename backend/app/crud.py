@@ -4,7 +4,16 @@ from typing import Any
 from sqlmodel import Session, select
 
 from app.core.security import get_password_hash, verify_password
-from app.models import Item, ItemCreate, User, UserCreate, UserUpdate
+from app.models import (
+    Item,
+    ItemCreate,
+    Project,
+    ProjectCreate,
+    ProjectUpdate,
+    User,
+    UserCreate,
+    UserUpdate,
+)
 
 
 def create_user(*, session: Session, user_create: UserCreate) -> User:
@@ -66,3 +75,24 @@ def create_item(*, session: Session, item_in: ItemCreate, owner_id: uuid.UUID) -
     session.commit()
     session.refresh(db_item)
     return db_item
+
+
+def create_project(
+    *, session: Session, project_in: ProjectCreate, owner_id: uuid.UUID
+) -> Project:
+    db_project = Project.model_validate(project_in, update={"owner_id": owner_id})
+    session.add(db_project)
+    session.commit()
+    session.refresh(db_project)
+    return db_project
+
+
+def update_project(
+    *, session: Session, db_project: Project, project_in: ProjectUpdate
+) -> Project:
+    update_dict = project_in.model_dump(exclude_unset=True)
+    db_project.sqlmodel_update(update_dict)
+    session.add(db_project)
+    session.commit()
+    session.refresh(db_project)
+    return db_project
