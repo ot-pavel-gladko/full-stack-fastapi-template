@@ -27,7 +27,7 @@
   "artifacts": {
     "wireframe": "wireframes/TRRND-23.html",
     "brief": ".adlc/brief.md",
-    "pr": null
+    "pr": "https://github.com/ot-pavel-gladko/full-stack-fastapi-template/pull/5"
   },
   "reviews": [
     {
