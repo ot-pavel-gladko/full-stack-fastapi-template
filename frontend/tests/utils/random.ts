@@ -17,3 +17,9 @@ export const randomItemTitle = () =>
 
 export const randomItemDescription = () =>
   `Description ${Math.random().toString(36).substring(7)}`
+
+export const randomProjectName = () =>
+  `Project ${Math.random().toString(36).substring(7)}`
+
+export const randomClientName = () =>
+  `Client ${Math.random().toString(36).substring(7)}`
