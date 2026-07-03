@@ -1,4 +1,11 @@
-import { Briefcase, Home, Users } from "lucide-react"
+import {
+  BarChart3,
+  Briefcase,
+  Clock,
+  FolderKanban,
+  Home,
+  Users,
+} from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -17,12 +24,16 @@ const baseItems: Item[] = [
   { icon: Briefcase, title: "Items", path: "/items" },
 ]
 
+const timeTrackingItems: Item[] = [
+  { icon: FolderKanban, title: "Projects", path: "/projects" },
+  { icon: Clock, title: "Log Time", path: "/log-time" },
+  { icon: BarChart3, title: "Hours Dashboard", path: "/hours-dashboard" },
+]
+
+const adminItems: Item[] = [{ icon: Users, title: "Admin", path: "/admin" }]
+
 export function AppSidebar() {
   const { user: currentUser } = useAuth()
-
-  const items = currentUser?.is_superuser
-    ? [...baseItems, { icon: Users, title: "Admin", path: "/admin" }]
-    : baseItems
 
   return (
     <Sidebar collapsible="icon">
@@ -30,7 +41,9 @@ export function AppSidebar() {
         <Logo variant="responsive" />
       </SidebarHeader>
       <SidebarContent>
-        <Main items={items} />
+        <Main items={baseItems} />
+        <Main items={timeTrackingItems} label="Time Tracking" />
+        {currentUser?.is_superuser ? <Main items={adminItems} /> : null}
       </SidebarContent>
       <SidebarFooter>
         <SidebarAppearance />
