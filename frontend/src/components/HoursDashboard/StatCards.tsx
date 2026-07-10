@@ -51,8 +51,10 @@ export function StatCards({ summary, period }: StatCardsProps) {
       {stats.map((stat) => (
         <Card key={stat.label}>
           <CardContent className="flex flex-col gap-1.5">
-            <span className="text-sm text-muted-foreground">{stat.label}</span>
-            <span className="text-2xl font-semibold">{stat.value}</span>
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {stat.label}
+            </span>
+            <span className="text-3xl font-bold tracking-tight">{stat.value}</span>
             <span className="text-xs text-muted-foreground">{stat.sub}</span>
           </CardContent>
         </Card>

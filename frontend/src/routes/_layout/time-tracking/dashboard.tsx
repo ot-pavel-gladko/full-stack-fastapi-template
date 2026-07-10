@@ -31,7 +31,7 @@ function HoursDashboardContent({ period }: { period: Period }) {
       <StatCards summary={summary} period={period} />
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <HoursByProjectPanel hoursByProject={summary.hours_by_project} />
-        <BillableSplitPanel summary={summary} />
+        <BillableSplitPanel summary={summary} period={period} />
       </div>
     </div>
   )
@@ -51,13 +51,16 @@ function HoursDashboard() {
             Summary of hours worked across all projects.
           </p>
         </div>
-        <Tabs value={period} onValueChange={(value) => setPeriod(value as Period)}>
-          <TabsList>
-            <TabsTrigger value="week">This week</TabsTrigger>
-            <TabsTrigger value="month">This month</TabsTrigger>
-            <TabsTrigger value="quarter">This quarter</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">Period:</span>
+          <Tabs value={period} onValueChange={(value) => setPeriod(value as Period)}>
+            <TabsList>
+              <TabsTrigger value="week">This week</TabsTrigger>
+              <TabsTrigger value="month">This month</TabsTrigger>
+              <TabsTrigger value="quarter">This quarter</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
       <Suspense fallback={<PendingHoursDashboard />}>
         <HoursDashboardContent period={period} />
