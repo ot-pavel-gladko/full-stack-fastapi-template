@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from pydantic import EmailStr
 from sqlalchemy import DateTime
@@ -55,6 +55,9 @@ class User(UserBase, table=True):
     )
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
     projects: list["Project"] = Relationship(back_populates="owner", cascade_delete=True)
+    time_entries: list["TimeEntry"] = Relationship(
+        back_populates="owner", cascade_delete=True
+    )
 
 
 # Properties to return via API, id is always required
@@ -139,6 +142,9 @@ class Project(ProjectBase, table=True):
         foreign_key="user.id", nullable=False, ondelete="CASCADE"
     )
     owner: User | None = Relationship(back_populates="projects")
+    time_entries: list["TimeEntry"] = Relationship(
+        back_populates="project", cascade_delete=True
+    )
 
 
 # Properties to return via API, id is always required
@@ -151,6 +157,55 @@ class ProjectPublic(ProjectBase):
 
 class ProjectsPublic(SQLModel):
     data: list[ProjectPublic]
+    count: int
+
+
+# Shared properties
+class TimeEntryBase(SQLModel):
+    project_id: uuid.UUID = Field(foreign_key="project.id", ondelete="CASCADE")
+    entry_date: date
+    hours: float = Field(gt=0)
+    description: str | None = Field(default=None, max_length=255)
+    billable: bool = True
+
+
+# Properties to receive on time entry creation
+class TimeEntryCreate(TimeEntryBase):
+    pass
+
+
+# Properties to receive on time entry update
+class TimeEntryUpdate(SQLModel):
+    project_id: uuid.UUID | None = None
+    entry_date: date | None = None
+    hours: float | None = Field(default=None, gt=0)
+    description: str | None = Field(default=None, max_length=255)
+    billable: bool | None = None
+
+
+# Database model, database table inferred from class name
+class TimeEntry(TimeEntryBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+    owner_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, ondelete="CASCADE"
+    )
+    project: Project | None = Relationship(back_populates="time_entries")
+    owner: User | None = Relationship(back_populates="time_entries")
+
+
+# Properties to return via API, id is always required
+class TimeEntryPublic(TimeEntryBase):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class TimeEntriesPublic(SQLModel):
+    data: list[TimeEntryPublic]
     count: int
 
 
