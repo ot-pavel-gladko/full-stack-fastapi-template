@@ -80,6 +80,38 @@ export type ProjectUpdate = {
     status?: (string | null);
 };
 
+export type TimeEntriesPublic = {
+    data: Array<TimeEntryPublic>;
+    count: number;
+};
+
+export type TimeEntryCreate = {
+    project_id: string;
+    entry_date: string;
+    hours: number;
+    description?: (string | null);
+    billable?: boolean;
+};
+
+export type TimeEntryPublic = {
+    project_id: string;
+    entry_date: string;
+    hours: number;
+    description?: (string | null);
+    billable?: boolean;
+    id: string;
+    owner_id: string;
+    created_at?: (string | null);
+};
+
+export type TimeEntryUpdate = {
+    project_id?: (string | null);
+    entry_date?: (string | null);
+    hours?: (number | null);
+    description?: (string | null);
+    billable?: (boolean | null);
+};
+
 export type Token = {
     access_token: string;
     token_type?: string;
@@ -236,6 +268,39 @@ export type ProjectsDeleteProjectData = {
 };
 
 export type ProjectsDeleteProjectResponse = (Message);
+
+export type TimeEntriesReadTimeEntriesData = {
+    limit?: number;
+    projectId?: (string | null);
+    skip?: number;
+};
+
+export type TimeEntriesReadTimeEntriesResponse = (TimeEntriesPublic);
+
+export type TimeEntriesCreateTimeEntryData = {
+    requestBody: TimeEntryCreate;
+};
+
+export type TimeEntriesCreateTimeEntryResponse = (TimeEntryPublic);
+
+export type TimeEntriesReadTimeEntryData = {
+    id: string;
+};
+
+export type TimeEntriesReadTimeEntryResponse = (TimeEntryPublic);
+
+export type TimeEntriesUpdateTimeEntryData = {
+    id: string;
+    requestBody: TimeEntryUpdate;
+};
+
+export type TimeEntriesUpdateTimeEntryResponse = (TimeEntryPublic);
+
+export type TimeEntriesDeleteTimeEntryData = {
+    id: string;
+};
+
+export type TimeEntriesDeleteTimeEntryResponse = (Message);
 
 export type UsersReadUsersData = {
     limit?: number;

@@ -428,6 +428,193 @@ export const ProjectsPublicSchema = {
     title: 'ProjectsPublic'
 } as const;
 
+export const TimeEntriesPublicSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/TimeEntryPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'TimeEntriesPublic'
+} as const;
+
+export const TimeEntryCreateSchema = {
+    properties: {
+        project_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Project Id'
+        },
+        entry_date: {
+            type: 'string',
+            format: 'date',
+            title: 'Entry Date'
+        },
+        hours: {
+            type: 'number',
+            exclusiveMinimum: 0,
+            title: 'Hours'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        billable: {
+            type: 'boolean',
+            title: 'Billable',
+            default: true
+        }
+    },
+    type: 'object',
+    required: ['project_id', 'entry_date', 'hours'],
+    title: 'TimeEntryCreate'
+} as const;
+
+export const TimeEntryPublicSchema = {
+    properties: {
+        project_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Project Id'
+        },
+        entry_date: {
+            type: 'string',
+            format: 'date',
+            title: 'Entry Date'
+        },
+        hours: {
+            type: 'number',
+            exclusiveMinimum: 0,
+            title: 'Hours'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        billable: {
+            type: 'boolean',
+            title: 'Billable',
+            default: true
+        },
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        owner_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Owner Id'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['project_id', 'entry_date', 'hours', 'id', 'owner_id'],
+    title: 'TimeEntryPublic'
+} as const;
+
+export const TimeEntryUpdateSchema = {
+    properties: {
+        project_id: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'uuid'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Project Id'
+        },
+        entry_date: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Entry Date'
+        },
+        hours: {
+            anyOf: [
+                {
+                    type: 'number',
+                    exclusiveMinimum: 0
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Hours'
+        },
+        description: {
+            anyOf: [
+                {
+                    type: 'string',
+                    maxLength: 255
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Description'
+        },
+        billable: {
+            anyOf: [
+                {
+                    type: 'boolean'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Billable'
+        }
+    },
+    type: 'object',
+    title: 'TimeEntryUpdate'
+} as const;
+
 export const TokenSchema = {
     properties: {
         access_token: {

@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsData, ProjectsReadProjectsResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectData, ProjectsReadProjectResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsData, ProjectsReadProjectsResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectData, ProjectsReadProjectResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, TimeEntriesReadTimeEntriesData, TimeEntriesReadTimeEntriesResponse, TimeEntriesCreateTimeEntryData, TimeEntriesCreateTimeEntryResponse, TimeEntriesReadTimeEntryData, TimeEntriesReadTimeEntryResponse, TimeEntriesUpdateTimeEntryData, TimeEntriesUpdateTimeEntryResponse, TimeEntriesDeleteTimeEntryData, TimeEntriesDeleteTimeEntryResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ItemsService {
     /**
@@ -336,6 +336,119 @@ export class ProjectsService {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/projects/{id}',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class TimeEntriesService {
+    /**
+     * Read Time Entries
+     * Retrieve time entries.
+     * @param data The data for the request.
+     * @param data.projectId
+     * @param data.skip
+     * @param data.limit
+     * @returns TimeEntriesPublic Successful Response
+     * @throws ApiError
+     */
+    public static readTimeEntries(data: TimeEntriesReadTimeEntriesData = {}): CancelablePromise<TimeEntriesReadTimeEntriesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/time-entries/',
+            query: {
+                project_id: data.projectId,
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Time Entry
+     * Create new time entry.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns TimeEntryPublic Successful Response
+     * @throws ApiError
+     */
+    public static createTimeEntry(data: TimeEntriesCreateTimeEntryData): CancelablePromise<TimeEntriesCreateTimeEntryResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/time-entries/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Time Entry
+     * Get time entry by ID.
+     * @param data The data for the request.
+     * @param data.id
+     * @returns TimeEntryPublic Successful Response
+     * @throws ApiError
+     */
+    public static readTimeEntry(data: TimeEntriesReadTimeEntryData): CancelablePromise<TimeEntriesReadTimeEntryResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/time-entries/{id}',
+            path: {
+                id: data.id
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Time Entry
+     * Update a time entry.
+     * @param data The data for the request.
+     * @param data.id
+     * @param data.requestBody
+     * @returns TimeEntryPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateTimeEntry(data: TimeEntriesUpdateTimeEntryData): CancelablePromise<TimeEntriesUpdateTimeEntryResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/time-entries/{id}',
+            path: {
+                id: data.id
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Time Entry
+     * Delete a time entry.
+     * @param data The data for the request.
+     * @param data.id
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteTimeEntry(data: TimeEntriesDeleteTimeEntryData): CancelablePromise<TimeEntriesDeleteTimeEntryResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/time-entries/{id}',
             path: {
                 id: data.id
             },
