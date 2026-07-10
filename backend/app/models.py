@@ -183,8 +183,12 @@ class TimeEntryUpdate(SQLModel):
     billable: bool | None = None
 
 
-# Database model, database table inferred from class name
+# Database model, database table name explicitly set to match the
+# hand-written migration (SQLModel would otherwise default to
+# "timeentry", not "time_entry")
 class TimeEntry(TimeEntryBase, table=True):
+    __tablename__ = "time_entry"
+
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
