@@ -213,6 +213,22 @@ class TimeEntriesPublic(SQLModel):
     count: int
 
 
+# Per-project breakdown row within an hours summary
+class ProjectHoursSummary(SQLModel):
+    project_id: uuid.UUID
+    project_name: str
+    total_hours: float
+
+
+# Response for GET /time-entries/summary
+class HoursSummary(SQLModel):
+    total_hours: float
+    billable_hours: float
+    non_billable_hours: float
+    entries_count: int
+    hours_by_project: list[ProjectHoursSummary]
+
+
 # Generic message
 class Message(SQLModel):
     message: str

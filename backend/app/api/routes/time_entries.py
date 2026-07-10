@@ -1,13 +1,17 @@
+import calendar
 import uuid
-from typing import Any
+from datetime import date, timedelta
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException
 from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import (
+    HoursSummary,
     Message,
     Project,
+    ProjectHoursSummary,
     TimeEntry,
     TimeEntryCreate,
     TimeEntryPublic,
@@ -16,6 +20,8 @@ from app.models import (
 )
 
 router = APIRouter(prefix="/time-entries", tags=["time-entries"])
+
+Period = Literal["week", "month", "quarter"]
 
 
 def _get_owned_project_or_404(
@@ -27,6 +33,32 @@ def _get_owned_project_or_404(
     if not current_user.is_superuser and (project.owner_id != current_user.id):
         raise HTTPException(status_code=404, detail="Project not found")
     return project
+
+
+def _get_period_range(period: Period, today: date) -> tuple[date, date]:
+    """
+    Return the inclusive [start, end] date window for a given period,
+    anchored to `today`.
+    """
+    if period == "week":
+        # ISO week: Monday through Sunday.
+        start = today - timedelta(days=today.weekday())
+        end = start + timedelta(days=6)
+        return start, end
+
+    if period == "quarter":
+        start_month = ((today.month - 1) // 3) * 3 + 1
+        end_month = start_month + 2
+        start = date(today.year, start_month, 1)
+        end_day = calendar.monthrange(today.year, end_month)[1]
+        end = date(today.year, end_month, end_day)
+        return start, end
+
+    # period == "month" (default)
+    end_day = calendar.monthrange(today.year, today.month)[1]
+    start = date(today.year, today.month, 1)
+    end = date(today.year, today.month, end_day)
+    return start, end
 
 
 @router.get("/", response_model=TimeEntriesPublic)
@@ -70,6 +102,62 @@ def read_time_entries(
         TimeEntryPublic.model_validate(time_entry) for time_entry in time_entries
     ]
     return TimeEntriesPublic(data=time_entries_public, count=count)
+
+
+@router.get("/summary", response_model=HoursSummary)
+def read_hours_summary(
+    session: SessionDep,
+    current_user: CurrentUser,
+    period: Period = "month",
+) -> Any:
+    """
+    Aggregate hours for the current user (superuser: all users) over the
+    given period (week/month/quarter, default month).
+
+    NOTE: this route must stay registered before GET /{id} — otherwise
+    Starlette would match "/summary" against the "{id}: uuid.UUID" path
+    param and fail with a 422 instead of running this handler.
+    """
+    start, end = _get_period_range(period, date.today())
+
+    statement = select(TimeEntry).where(
+        TimeEntry.entry_date >= start, TimeEntry.entry_date <= end
+    )
+    if not current_user.is_superuser:
+        statement = statement.where(TimeEntry.owner_id == current_user.id)
+
+    time_entries = session.exec(statement).all()
+
+    total_hours = 0.0
+    billable_hours = 0.0
+    project_totals: dict[uuid.UUID, dict[str, Any]] = {}
+
+    for entry in time_entries:
+        total_hours += entry.hours
+        if entry.billable:
+            billable_hours += entry.hours
+
+        bucket = project_totals.setdefault(
+            entry.project_id,
+            {
+                "project_id": entry.project_id,
+                "project_name": entry.project.name if entry.project else "Unknown",
+                "total_hours": 0.0,
+            },
+        )
+        bucket["total_hours"] += entry.hours
+
+    non_billable_hours = total_hours - billable_hours
+
+    return HoursSummary(
+        total_hours=round(total_hours, 2),
+        billable_hours=round(billable_hours, 2),
+        non_billable_hours=round(non_billable_hours, 2),
+        entries_count=len(time_entries),
+        hours_by_project=[
+            ProjectHoursSummary(**bucket) for bucket in project_totals.values()
+        ],
+    )
 
 
 @router.get("/{id}", response_model=TimeEntryPublic)
