@@ -6,12 +6,22 @@
   "feature_slug": "time-tracking",
   "base_branch": "master",
   "branch": "feature/TRRND-50-time-tracking",
-  "current_step": 2,
+  "current_step": 4,
   "timeline": {
     "0": "2026-07-10T12:43:51Z",
-    "2": "2026-07-10T12:54:34Z"
+    "2": "2026-07-10T12:54:34Z",
+    "4": "2026-07-10T13:02:30Z"
   },
-  "stories": [],
+  "stories": [
+    "TRRND-51",
+    "TRRND-52",
+    "TRRND-53",
+    "TRRND-54",
+    "TRRND-55",
+    "TRRND-56",
+    "TRRND-57",
+    "TRRND-58"
+  ],
   "artifacts": {
     "wireframe": "wireframes/TRRND-50.html",
     "brief": null,
