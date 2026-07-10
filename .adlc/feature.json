@@ -6,14 +6,15 @@
   "feature_slug": "time-tracking",
   "base_branch": "master",
   "branch": "feature/TRRND-50-time-tracking",
-  "current_step": 4,
+  "current_step": 5,
   "timeline": {
     "0": "2026-07-10T12:43:51Z",
     "2": "2026-07-10T12:54:34Z",
     "4": "2026-07-10T13:02:30Z",
     "5-s1": "2026-07-10T13:24:59Z",
     "5-s2": "2026-07-10T13:52:35Z",
-    "5-s3": "2026-07-10T14:13:40Z"
+    "5-s3": "2026-07-10T14:13:40Z",
+    "5": "2026-07-10T14:34:37Z"
   },
   "stories": [
     "TRRND-51",
@@ -28,7 +29,7 @@
   "artifacts": {
     "wireframe": "wireframes/TRRND-50.html",
     "brief": ".adlc/brief.md",
-    "pr": null
+    "pr": "https://github.com/ot-pavel-gladko/full-stack-fastapi-template/pull/6"
   },
   "reviews": [
     {
