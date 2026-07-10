@@ -9,6 +9,14 @@ export type Body_login_login_access_token = {
     client_secret?: (string | null);
 };
 
+export type HoursSummary = {
+    total_hours: number;
+    billable_hours: number;
+    non_billable_hours: number;
+    entries_count: number;
+    hours_by_project: Array<ProjectHoursSummary>;
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -56,6 +64,12 @@ export type ProjectCreate = {
     name: string;
     description?: (string | null);
     client?: (string | null);
+};
+
+export type ProjectHoursSummary = {
+    project_id: string;
+    project_name: string;
+    total_hours: number;
 };
 
 export type ProjectPublic = {
@@ -282,6 +296,12 @@ export type TimeEntriesCreateTimeEntryData = {
 };
 
 export type TimeEntriesCreateTimeEntryResponse = (TimeEntryPublic);
+
+export type TimeEntriesReadHoursSummaryData = {
+    period?: 'week' | 'month' | 'quarter';
+};
+
+export type TimeEntriesReadHoursSummaryResponse = (HoursSummary);
 
 export type TimeEntriesReadTimeEntryData = {
     id: string;

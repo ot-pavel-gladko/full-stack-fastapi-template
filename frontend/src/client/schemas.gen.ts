@@ -71,6 +71,37 @@ export const HTTPValidationErrorSchema = {
     title: 'HTTPValidationError'
 } as const;
 
+export const HoursSummarySchema = {
+    properties: {
+        total_hours: {
+            type: 'number',
+            title: 'Total Hours'
+        },
+        billable_hours: {
+            type: 'number',
+            title: 'Billable Hours'
+        },
+        non_billable_hours: {
+            type: 'number',
+            title: 'Non Billable Hours'
+        },
+        entries_count: {
+            type: 'integer',
+            title: 'Entries Count'
+        },
+        hours_by_project: {
+            items: {
+                '$ref': '#/components/schemas/ProjectHoursSummary'
+            },
+            type: 'array',
+            title: 'Hours By Project'
+        }
+    },
+    type: 'object',
+    required: ['total_hours', 'billable_hours', 'non_billable_hours', 'entries_count', 'hours_by_project'],
+    title: 'HoursSummary'
+} as const;
+
 export const ItemCreateSchema = {
     properties: {
         title: {
@@ -287,6 +318,27 @@ export const ProjectCreateSchema = {
     type: 'object',
     required: ['name'],
     title: 'ProjectCreate'
+} as const;
+
+export const ProjectHoursSummarySchema = {
+    properties: {
+        project_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Project Id'
+        },
+        project_name: {
+            type: 'string',
+            title: 'Project Name'
+        },
+        total_hours: {
+            type: 'number',
+            title: 'Total Hours'
+        }
+    },
+    type: 'object',
+    required: ['project_id', 'project_name', 'total_hours'],
+    title: 'ProjectHoursSummary'
 } as const;
 
 export const ProjectPublicSchema = {

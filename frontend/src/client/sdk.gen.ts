@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsData, ProjectsReadProjectsResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectData, ProjectsReadProjectResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, TimeEntriesReadTimeEntriesData, TimeEntriesReadTimeEntriesResponse, TimeEntriesCreateTimeEntryData, TimeEntriesCreateTimeEntryResponse, TimeEntriesReadTimeEntryData, TimeEntriesReadTimeEntryResponse, TimeEntriesUpdateTimeEntryData, TimeEntriesUpdateTimeEntryResponse, TimeEntriesDeleteTimeEntryData, TimeEntriesDeleteTimeEntryResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { ItemsReadItemsData, ItemsReadItemsResponse, ItemsCreateItemData, ItemsCreateItemResponse, ItemsReadItemData, ItemsReadItemResponse, ItemsUpdateItemData, ItemsUpdateItemResponse, ItemsDeleteItemData, ItemsDeleteItemResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, ProjectsReadProjectsData, ProjectsReadProjectsResponse, ProjectsCreateProjectData, ProjectsCreateProjectResponse, ProjectsReadProjectData, ProjectsReadProjectResponse, ProjectsUpdateProjectData, ProjectsUpdateProjectResponse, ProjectsDeleteProjectData, ProjectsDeleteProjectResponse, TimeEntriesReadTimeEntriesData, TimeEntriesReadTimeEntriesResponse, TimeEntriesCreateTimeEntryData, TimeEntriesCreateTimeEntryResponse, TimeEntriesReadHoursSummaryData, TimeEntriesReadHoursSummaryResponse, TimeEntriesReadTimeEntryData, TimeEntriesReadTimeEntryResponse, TimeEntriesUpdateTimeEntryData, TimeEntriesUpdateTimeEntryResponse, TimeEntriesDeleteTimeEntryData, TimeEntriesDeleteTimeEntryResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersRegisterUserData, UsersRegisterUserResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class ItemsService {
     /**
@@ -386,6 +386,32 @@ export class TimeEntriesService {
             url: '/api/v1/time-entries/',
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Hours Summary
+     * Aggregate hours for the current user (superuser: all users) over the
+     * given period (week/month/quarter, default month).
+     *
+     * NOTE: this route must stay registered before GET /{id} — otherwise
+     * Starlette would match "/summary" against the "{id}: uuid.UUID" path
+     * param and fail with a 422 instead of running this handler.
+     * @param data The data for the request.
+     * @param data.period
+     * @returns HoursSummary Successful Response
+     * @throws ApiError
+     */
+    public static readHoursSummary(data: TimeEntriesReadHoursSummaryData = {}): CancelablePromise<TimeEntriesReadHoursSummaryResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/time-entries/summary',
+            query: {
+                period: data.period
+            },
             errors: {
                 422: 'Validation Error'
             }

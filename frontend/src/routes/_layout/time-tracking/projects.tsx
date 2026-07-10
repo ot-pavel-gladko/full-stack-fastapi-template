@@ -9,6 +9,7 @@ import PendingProjects from "@/components/Pending/PendingProjects"
 import AddProject from "@/components/Projects/AddProject"
 import { getColumns } from "@/components/Projects/columns"
 import { ProjectCard } from "@/components/Projects/ProjectCard"
+import { getHoursSummaryQueryOptions } from "@/components/TimeEntries/hoursSummaryQuery"
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group"
 
 function getProjectsQueryOptions() {
@@ -33,6 +34,11 @@ type ProjectsView = "table" | "cards"
 
 function ProjectsContent({ view }: { view: ProjectsView }) {
   const { data: projects } = useSuspenseQuery(getProjectsQueryOptions())
+  // Total Hours is sourced from the hours-summary endpoint's
+  // hours_by_project breakdown (TRRND-53) — the single source of truth for
+  // "hours logged per project", scoped to the current user and defaulting
+  // to the current month (same window the Hours Dashboard shows by default).
+  const { data: hoursSummary } = useSuspenseQuery(getHoursSummaryQueryOptions())
 
   if (projects.data.length === 0) {
     return (
@@ -48,10 +54,10 @@ function ProjectsContent({ view }: { view: ProjectsView }) {
     )
   }
 
-  // Total Hours comes from the hours-summary endpoint's hours_by_project
-  // breakdown (TRRND-53). Not wired in until slice 3 lands — pass an empty
-  // map so the column/field renders gracefully ("—") in the meantime.
   const hoursByProjectId: Record<string, number> = {}
+  for (const row of hoursSummary.hours_by_project) {
+    hoursByProjectId[row.project_id] = row.total_hours
+  }
 
   if (view === "cards") {
     return (

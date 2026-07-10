@@ -3,7 +3,9 @@ import type { ProjectPublic } from "@/client"
 /**
  * Total Hours is sourced from the hours-summary endpoint's
  * `hours_by_project` breakdown (TRRND-53), not from the Project entity
- * itself. Until that endpoint is wired in (slice 3), render gracefully.
+ * itself — the current period's (default: this month) logged hours for
+ * that project. Renders gracefully ("—") for projects with no entries in
+ * the period.
  */
 export function formatTotalHours(
   project: ProjectPublic,
