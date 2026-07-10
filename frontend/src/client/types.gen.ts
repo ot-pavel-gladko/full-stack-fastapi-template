@@ -52,6 +52,34 @@ export type PrivateUserCreate = {
     is_verified?: boolean;
 };
 
+export type ProjectCreate = {
+    name: string;
+    description?: (string | null);
+    client?: (string | null);
+};
+
+export type ProjectPublic = {
+    name: string;
+    description?: (string | null);
+    client?: (string | null);
+    id: string;
+    status: string;
+    owner_id: string;
+    created_at?: (string | null);
+};
+
+export type ProjectsPublic = {
+    data: Array<ProjectPublic>;
+    count: number;
+};
+
+export type ProjectUpdate = {
+    name?: (string | null);
+    description?: (string | null);
+    client?: (string | null);
+    status?: (string | null);
+};
+
 export type Token = {
     access_token: string;
     token_type?: string;
@@ -176,6 +204,38 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type ProjectsReadProjectsData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type ProjectsReadProjectsResponse = (ProjectsPublic);
+
+export type ProjectsCreateProjectData = {
+    requestBody: ProjectCreate;
+};
+
+export type ProjectsCreateProjectResponse = (ProjectPublic);
+
+export type ProjectsReadProjectData = {
+    id: string;
+};
+
+export type ProjectsReadProjectResponse = (ProjectPublic);
+
+export type ProjectsUpdateProjectData = {
+    id: string;
+    requestBody: ProjectUpdate;
+};
+
+export type ProjectsUpdateProjectResponse = (ProjectPublic);
+
+export type ProjectsDeleteProjectData = {
+    id: string;
+};
+
+export type ProjectsDeleteProjectResponse = (Message);
 
 export type UsersReadUsersData = {
     limit?: number;
