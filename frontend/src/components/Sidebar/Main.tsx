@@ -1,6 +1,6 @@
 import { Link as RouterLink, useRouterState } from "@tanstack/react-router"
-import { ChevronRight } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
+import { ChevronRight } from "lucide-react"
 import { useState } from "react"
 
 import {
@@ -67,7 +67,11 @@ export function Main({ items }: MainProps) {
 
             return (
               <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton tooltip={item.title} isActive={isActive} asChild>
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  isActive={isActive}
+                  asChild
+                >
                   <RouterLink to={item.path} onClick={handleMenuClick}>
                     <item.icon />
                     <span>{item.title}</span>
@@ -102,13 +106,18 @@ function NavGroup({ item, currentPath, onNavigate }: NavGroupProps) {
       >
         <item.icon />
         <span className="flex-1">{item.title}</span>
-        <ChevronRight className={cn("transition-transform", open && "rotate-90")} />
+        <ChevronRight
+          className={cn("transition-transform", open && "rotate-90")}
+        />
       </SidebarMenuButton>
       {open && (
         <SidebarMenuSub>
           {children.map((child) => (
             <SidebarMenuSubItem key={child.title}>
-              <SidebarMenuSubButton isActive={currentPath === child.path} asChild>
+              <SidebarMenuSubButton
+                isActive={currentPath === child.path}
+                asChild
+              >
                 <RouterLink to={child.path} onClick={onNavigate}>
                   <span>{child.title}</span>
                 </RouterLink>

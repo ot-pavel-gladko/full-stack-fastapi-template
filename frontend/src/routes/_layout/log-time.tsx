@@ -16,9 +16,7 @@ function LogTime() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Log Time</h1>
-        <p className="text-muted-foreground">
-          Record hours against a project
-        </p>
+        <p className="text-muted-foreground">Record hours against a project</p>
       </div>
       <p className="text-muted-foreground">Coming soon.</p>
     </div>
