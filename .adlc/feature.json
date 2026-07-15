@@ -6,9 +6,29 @@
   "feature_slug": "time-tracking",
   "base_branch": "master",
   "branch": "feature/TRRND-68-time-tracking",
-  "current_step": 0,
-  "timeline": { "0": "2026-07-15T14:44:15Z" },
+  "current_step": 2,
+  "timeline": {
+    "0": "2026-07-15T14:44:15Z",
+    "2": "2026-07-15T14:58:38Z"
+  },
   "stories": [],
-  "artifacts": { "wireframe": null, "brief": null, "pr": null },
-  "reviews": []
+  "artifacts": {
+    "wireframe": "wireframes/TRRND-68.html",
+    "brief": null,
+    "pr": null
+  },
+  "reviews": [
+    {
+      "step": 2,
+      "round": 1,
+      "verdict": "rejected",
+      "comments": "Projects page: add Cards view and a switch between cards/table view"
+    },
+    {
+      "step": 2,
+      "round": 2,
+      "verdict": "approved",
+      "comments": ""
+    }
+  ]
 }
