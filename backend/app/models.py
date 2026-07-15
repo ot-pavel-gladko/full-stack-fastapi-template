@@ -111,16 +111,20 @@ class ItemsPublic(SQLModel):
 
 
 # Shared properties
+# NOTE: `status` is typed as plain `str` here (not Literal) because this class
+# is also the base for the `Project` table model, and SQLModel cannot map a
+# `Literal` type to a SQLAlchemy column type. Literal validation is applied on
+# the API-facing ProjectCreate/ProjectUpdate schemas instead.
 class ProjectBase(SQLModel):
     name: str = Field(min_length=1, max_length=255)
     client: str | None = Field(default=None, max_length=255)
     description: str | None = Field(default=None)
-    status: Literal["active", "archived"] = Field(default="active")
+    status: str = Field(default="active", max_length=20)
 
 
 # Properties to receive on project creation
 class ProjectCreate(ProjectBase):
-    pass
+    status: Literal["active", "archived"] = Field(default="active")
 
 
 # Properties to receive on project update
