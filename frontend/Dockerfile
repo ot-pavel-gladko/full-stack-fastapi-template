@@ -1,6 +1,6 @@
 # Stage "deps", based on Bun, with only the installed node_modules. Local dev
 # targets this stage and runs the Vite dev server against bind-mounted source.
-FROM oven/bun:1 AS deps
+FROM oven/bun:1-alpine AS deps
 
 WORKDIR /app
 
